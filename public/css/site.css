@@ -1,0 +1,80 @@
+body {
+    font-family: 'Helvetica Neue', Verdana, Helvetica, Arial, sans-serif;
+    max-width: 600px;
+    margin: 0 auto;
+    padding-top: 72px;
+    -webkit-font-smoothing: antialiased;
+    font-size: 1.125em;
+    color: #333;
+    line-height: 1.5em;
+}
+
+button {
+    margin: 10px;
+    background-color: #b1b1b1;
+    border-radius: 4px;
+    border-width: 0px;
+}
+
+.gui-main > * {
+    margin: 5px;
+}
+
+.wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-around;
+}
+
+.gui {
+    background-color: #efecec;
+    margin: 10px 2px;
+    border: darkgrey solid 1px;
+}
+
+.gui-title {
+    font-weight:bold;
+}
+
+.gui-main {
+display:flex;
+/*:flex-wrap       "wrap"*/
+align-items:center;
+/*:justify-content "space around"*/
+}
+
+.gui-title {
+    text-align: center;
+}
+
+.wrapper > div {
+    padding: 1em;
+    border-radius: 5px;
+    border: gainsboro solid 1px;
+}
+
+h1, h2, h3 {
+    color: #000;
+}
+
+h1 {
+    font-size: 2.5em
+}
+
+h2 {
+    font-size: 2em
+}
+
+h3 {
+    font-size: 1.5em
+}
+
+a {
+    text-decoration: none;
+    color: #09f;
+}
+
+a:hover {
+    text-decoration: underline;
+}
