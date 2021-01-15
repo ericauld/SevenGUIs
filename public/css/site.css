@@ -9,9 +9,14 @@ body {
     line-height: 1.5em;
 }
 
+.gui-display {
+    color: purple;
+    font-weight: bold;
+}
+
 button {
     margin: 10px;
-    background-color: #b1b1b1;
+    background-color: #bebebe;
     border-radius: 4px;
     border-width: 0px;
 }
@@ -27,21 +32,27 @@ button {
     justify-content: space-around;
 }
 
+input::-webkit-input-placeholder {
+    color:gray;
+    font-weight: normal;
+    text-align: left;
+}
+
 .gui {
     background-color: #efecec;
     margin: 10px 2px;
-    border: darkgrey solid 1px;
+    border: #a9a9a9 solid 1px;
 }
 
 .gui-title {
-    font-weight:bold;
+    font-weight: bold;
 }
 
 .gui-main {
-display:flex;
-/*:flex-wrap       "wrap"*/
-align-items:center;
-/*:justify-content "space around"*/
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-around;
 }
 
 .gui-title {
