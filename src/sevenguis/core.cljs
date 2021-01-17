@@ -45,6 +45,13 @@
 (defn get-event-value [event]
   (.. event -target -value))
 
+(defn circle-drawer []
+  [:div.gui
+   [:div.gui-title "Circle Drawer"]
+   [:div.gui-main
+    [:button "Undo"]
+    [:button "Redo"]]])
+
 (defn crud []
   (r/with-let [name-list (r/atom #{"Smith John" "Jones Jane"})
                first-name-input (r/atom nil)
@@ -96,10 +103,12 @@
        [:select {:size 5 :on-change (fn [event]
                                       (let [selected (get-event-value event)]
                                         (reset! selected-name selected)))}
-        (let [a 7]
-          (for [name @name-list :let [[last first] (str/split name " ")]]
+        (let [prefix @filter-prefix
+              prefix-as-regex (re-pattern (str prefix ".*"))
+              matches-prefix? (fn [name] (re-matches prefix-as-regex name))
+              filtered-names (filter matches-prefix? @name-list)]
+          (for [name filtered-names :let [[last first] (str/split name " ")]]
             [:option {:value name} (str last ", " first)]))]]]]))
-
 
 (defn timer []
   (r/with-let [decimal-precision 1
@@ -246,7 +255,7 @@
     [flight-booker]
     [timer]
     [crud]
-    [:div.gui "Six"]
+    [circle-drawer]
     [:div.gui "Seven"]]])
 
 (defn mount-root []
