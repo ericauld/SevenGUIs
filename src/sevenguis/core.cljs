@@ -45,12 +45,35 @@
 (defn get-event-value [event]
   (.. event -target -value))
 
+
+
 (defn circle-drawer []
-  [:div.gui
-   [:div.gui-title "Circle Drawer"]
-   [:div.gui-main
-    [:button "Undo"]
-    [:button "Redo"]]])
+  (let [!canvas (atom nil)]
+    (r/create-class
+      {:componentDidMount
+       (fn [])
+       :reagent-render
+       (fn [] [:div.gui
+               [:div.gui-title "Circle Drawer"]
+               [:div.gui-main
+                [:canvas#circle-canvas
+                 {:ref      (fn [elem]
+                              (reset! !canvas elem))
+                  :width    150
+                  :height   150
+                  :on-click (fn [event]
+                              (when-let [canvas @!canvas]
+                                (let [rect (.getBoundingClientRect canvas)
+                                      left-boundary (.-left rect)
+                                      top-boundary (.-top rect)
+                                      x-coord (-> event .-clientX (- left-boundary))
+                                      y-coord (-> event .-clientY (- top-boundary))
+                                      context (.getContext canvas "2d")]
+                                  (.beginPath context)
+                                  (.arc context x-coord y-coord 20 0 (* 2 js/Math.PI) true)
+                                  (.stroke context))))}]
+                [:button "Undo"]
+                [:button "Redo"]]])})))
 
 (defn crud []
   (r/with-let [name-list (r/atom #{"Smith John" "Jones Jane"})
