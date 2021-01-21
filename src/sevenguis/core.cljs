@@ -45,35 +45,48 @@
 (defn get-event-value [event]
   (.. event -target -value))
 
-
-
 (defn circle-drawer []
-  (let [!canvas (atom nil)]
-    (r/create-class
-      {:componentDidMount
-       (fn [])
-       :reagent-render
-       (fn [] [:div.gui
-               [:div.gui-title "Circle Drawer"]
-               [:div.gui-main
-                [:canvas#circle-canvas
-                 {:ref      (fn [elem]
-                              (reset! !canvas elem))
-                  :width    150
-                  :height   150
-                  :on-click (fn [event]
-                              (when-let [canvas @!canvas]
-                                (let [rect (.getBoundingClientRect canvas)
-                                      left-boundary (.-left rect)
-                                      top-boundary (.-top rect)
-                                      x-coord (-> event .-clientX (- left-boundary))
-                                      y-coord (-> event .-clientY (- top-boundary))
-                                      context (.getContext canvas "2d")]
-                                  (.beginPath context)
-                                  (.arc context x-coord y-coord 20 0 (* 2 js/Math.PI) true)
-                                  (.stroke context))))}]
-                [:button "Undo"]
-                [:button "Redo"]]])})))
+  (r/with-let [!canvas (atom nil)
+               x-coord-1 (r/atom 0)
+               y-coord-1 (r/atom 0)
+               show-context-menu? (r/atom false)]
+    [:div.gui
+     {:on-context-menu (fn [right-click-event]
+                         (.preventDefault right-click-event)
+                         (when-let [canvas @!canvas]
+                           (let [left-boundary (.-left (.getBoundingClientRect canvas))
+                                 top-boundary (.-top (.getBoundingClientRect canvas))
+                                 x-coord (-> right-click-event .-clientX (- left-boundary))
+                                 y-coord (-> right-click-event .-clientY (- top-boundary))]
+                             (reset! x-coord-1 x-coord)
+                             (reset! y-coord-1 y-coord)
+                             (reset! show-context-menu? true))))
+      :on-click        (fn [click-event]
+                         (reset! show-context-menu? false))}
+     [:div.gui-title "Circle Drawer"]
+     [:div#context-menu-wrapper
+      (if @show-context-menu?
+        [:ul#context-menu {:style
+                           {:top @x-coord-1 :left @y-coord-1}}
+         [:li "Item 1"] [:li "Item 2"]])]
+     [:div.gui-main
+      [:canvas#circle-canvas
+       {:ref      (fn [elem]
+                    (reset! !canvas elem))
+        :width    500
+        :height   500
+        :on-click (fn [click-event]
+                    (when-let [canvas @!canvas]
+                      (let [left-boundary (.-left (.getBoundingClientRect canvas))
+                            top-boundary (.-top (.getBoundingClientRect canvas))
+                            x-coord (-> click-event .-clientX (- left-boundary))
+                            y-coord (-> click-event .-clientY (- top-boundary))
+                            context (.getContext canvas "2d")]
+                        (.beginPath context)
+                        (.arc context x-coord y-coord 20 0 (* 2 js/Math.PI))
+                        (.stroke context))))}]
+      [:button "Undo"]
+      [:button "Redo"]]]))
 
 (defn crud []
   (r/with-let [name-list (r/atom #{"Smith John" "Jones Jane"})

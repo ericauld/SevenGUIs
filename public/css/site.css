@@ -14,6 +14,20 @@ body {
     font-weight: bold;
 }
 
+#context-menu-wrapper {
+    position: relative;
+}
+
+#context-menu  {
+    background-color: #fff;
+    border-radius: 2px;
+    padding-left: 0;
+    margin: 0;
+    position: absolute;
+    list-style: none;
+    z-index: 10;
+}
+
 button {
     margin: 10px;
     background-color: #bebebe;
