@@ -14,18 +14,20 @@ body {
     font-weight: bold;
 }
 
-#context-menu-wrapper {
-    position: relative;
+#context-menu  {
+    background-color: #bbbcc0;
+    padding: 0;
 }
 
-#context-menu  {
-    background-color: #fff;
-    border-radius: 2px;
-    padding-left: 0;
-    margin: 0;
-    position: absolute;
-    list-style: none;
-    z-index: 10;
+#context-menu-item {
+    padding: 0px 9px;
+    margin: 1px 0px;
+    font-size: .8em;
+}
+
+#context-menu-item:hover {
+    background-color: #4e66ff;
+    cursor: default;
 }
 
 button {

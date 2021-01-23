@@ -47,44 +47,57 @@
 
 (defn circle-drawer []
   (r/with-let [!canvas (atom nil)
-               x-coord-1 (r/atom 0)
-               y-coord-1 (r/atom 0)
-               show-context-menu? (r/atom false)]
+               !gui-main (atom nil)
+               context-menu-top (r/atom 0)
+               context-menu-left (r/atom 0)
+               hide-context-menu? (r/atom true)
+               default-radius 20]
     [:div.gui
-     {:on-context-menu (fn [right-click-event]
-                         (.preventDefault right-click-event)
-                         (when-let [canvas @!canvas]
-                           (let [left-boundary (.-left (.getBoundingClientRect canvas))
-                                 top-boundary (.-top (.getBoundingClientRect canvas))
-                                 x-coord (-> right-click-event .-clientX (- left-boundary))
-                                 y-coord (-> right-click-event .-clientY (- top-boundary))]
-                             (reset! x-coord-1 x-coord)
-                             (reset! y-coord-1 y-coord)
-                             (reset! show-context-menu? true))))
-      :on-click        (fn [click-event]
-                         (reset! show-context-menu? false))}
      [:div.gui-title "Circle Drawer"]
-     [:div#context-menu-wrapper
-      (if @show-context-menu?
-        [:ul#context-menu {:style
-                           {:top @x-coord-1 :left @y-coord-1}}
-         [:li "Item 1"] [:li "Item 2"]])]
-     [:div.gui-main
-      [:canvas#circle-canvas
-       {:ref      (fn [elem]
-                    (reset! !canvas elem))
-        :width    500
-        :height   500
-        :on-click (fn [click-event]
-                    (when-let [canvas @!canvas]
-                      (let [left-boundary (.-left (.getBoundingClientRect canvas))
-                            top-boundary (.-top (.getBoundingClientRect canvas))
-                            x-coord (-> click-event .-clientX (- left-boundary))
-                            y-coord (-> click-event .-clientY (- top-boundary))
-                            context (.getContext canvas "2d")]
-                        (.beginPath context)
-                        (.arc context x-coord y-coord 20 0 (* 2 js/Math.PI))
-                        (.stroke context))))}]
+     [:div.gui-main {:ref   (fn [elem] (reset! !gui-main elem))
+                     :style {:position "relative"}}
+      [:canvas
+       {:ref             (fn [elem]
+                           (reset! !canvas elem))
+        :width           500
+        :height          350
+        :on-click        (fn [click-event]
+                           (if-not @hide-context-menu?
+                             (reset! hide-context-menu? true)
+                             (when-let [canvas @!canvas]
+                               (let [left-of-canvas-element (.-left (.getBoundingClientRect canvas))
+                                     top-of-canvas-element (.-top (.getBoundingClientRect canvas))
+                                     x-click (-> click-event .-clientX)
+                                     y-click (-> click-event .-clientY)
+                                     x-click-relative-to-canvas (- x-click left-of-canvas-element)
+                                     y-click-relative-to-canvas (- y-click top-of-canvas-element)
+                                     context (.getContext canvas "2d")]
+                                 (.beginPath context)
+                                 (.arc context x-click-relative-to-canvas y-click-relative-to-canvas
+                                       default-radius 0 (* 2 js/Math.PI))
+                                 (.stroke context)))))
+        :on-context-menu (fn [right-click-event]
+                           (.preventDefault right-click-event)
+                           (when-let [gui-main @!gui-main]
+                             (let [left-of-gui-main (.-left (.getBoundingClientRect gui-main))
+                                   top-of-gui-main (.-top (.getBoundingClientRect gui-main))
+                                   x-click (-> right-click-event .-clientX)
+                                   y-click (-> right-click-event .-clientY)
+                                   x-click-relative-to-gui-main (- x-click left-of-gui-main)
+                                   y-click-relative-to-gui-main (- y-click top-of-gui-main)]
+                               (reset! context-menu-left x-click-relative-to-gui-main)
+                               (reset! context-menu-top y-click-relative-to-gui-main)))
+                           (reset! hide-context-menu? false))}]
+      [:ul#context-menu {:hidden @hide-context-menu?
+                         :style  {:list-style-type      "none"
+                                  :padding-inline-start 0
+                                  :position             "absolute"
+                                  :top                  @context-menu-top
+                                  :left                 @context-menu-left}}
+       [:li#context-menu-item
+        {:on-click (fn [click-event]
+                     (reset! hide-context-menu? true))}
+        "Adjust radius"]]
       [:button "Undo"]
       [:button "Redo"]]]))
 
