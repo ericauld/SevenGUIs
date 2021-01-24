@@ -45,32 +45,34 @@
 (defn get-event-value [event]
   (.. event -target -value))
 
-(defn location-of [event html-element]
-  (let [left-of-element (.-left (.getBoundingClientRect html-element))
-        top-of-element (.-top (.getBoundingClientRect html-element))
-        x-absolute (-> event .-clientX)
-        y-absolute (-> event .-clientY)
-        x-relative (- x-absolute left-of-element)
-        y-relative (- y-absolute top-of-element)]
-    [x-relative y-relative]))
+(defn get-element-coords [html-element]
+  [(.-left (.getBoundingClientRect html-element))
+   (.-top (.getBoundingClientRect html-element))])
+
+(defn get-event-coords [event]
+  [(-> event .-clientX)
+   (-> event .-clientY)])
+
+(defn relative-location [event html-element]
+  (mapv - (get-event-coords event) (get-element-coords html-element)))
 
 (defn circle-drawer []
   (r/with-let [default-radius 20
                next-circle-id (atom 0)
-               get-new-circle-id (fn [] (swap! next-circle-id inc) @next-circle-id)
+               generate-id! (fn [] (swap! next-circle-id inc) @next-circle-id)
                circles (r/atom #{})
-               circle-at (fn [[cx cy]] {:id (get-new-circle-id) :cx cx
+               circle-at (fn [[cx cy]] {:id (generate-id!) :cx cx
                                         :cy cy :rad default-radius})
-               add-circle-at (fn [[cx cy]]
-                               (r/rswap! circles conj (circle-at [cx cy])))
+               add-circle-at! (fn [[cx cy]]
+                                (r/rswap! circles conj (circle-at [cx cy])))
                show-context-menu? (r/atom false)
                !svg-element (atom nil)
                !gui-main-element (atom nil)
                context-menu-top (r/atom 0)
                context-menu-left (r/atom 0)
-               place-context-menu-at (fn [x y]
-                                       (reset! context-menu-left x)
-                                       (reset! context-menu-top y))]
+               place-context-menu-at! (fn [x y]
+                                        (reset! context-menu-left x)
+                                        (reset! context-menu-top y))]
     [:div.gui
      [:div.gui-title "Circle Drawer"]
      [:div.gui-main {:ref   #(reset! !gui-main-element %)
@@ -81,13 +83,13 @@
                                 (if @show-context-menu?
                                   (reset! show-context-menu? false)
                                   (when-let [svg-element @!svg-element]
-                                    (add-circle-at (location-of click svg-element)))))
+                                    (add-circle-at! (relative-location click svg-element)))))
              :on-context-menu (fn [right-click-event]
                                 (.preventDefault right-click-event)
                                 (when-let [gui-main-element @!gui-main-element]
                                   (let [[x-click-relative-to-gui-main y-click-relative-to-gui-main]
-                                        (location-of right-click-event gui-main-element)]
-                                    (place-context-menu-at x-click-relative-to-gui-main y-click-relative-to-gui-main)))
+                                        (relative-location right-click-event gui-main-element)]
+                                    (place-context-menu-at! x-click-relative-to-gui-main y-click-relative-to-gui-main)))
                                 (reset! show-context-menu? true))}
 
 
