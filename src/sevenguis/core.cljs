@@ -45,50 +45,56 @@
 (defn get-event-value [event]
   (.. event -target -value))
 
+(defn location-of [event html-element]
+  (let [left-of-element (.-left (.getBoundingClientRect html-element))
+        top-of-element (.-top (.getBoundingClientRect html-element))
+        x-absolute (-> event .-clientX)
+        y-absolute (-> event .-clientY)
+        x-relative (- x-absolute left-of-element)
+        y-relative (- y-absolute top-of-element)]
+    [x-relative y-relative]))
+
 (defn circle-drawer []
-  (r/with-let [!canvas (atom nil)
-               !gui-main (atom nil)
+  (r/with-let [default-radius 20
+               next-circle-id (atom 0)
+               get-new-circle-id (fn [] (swap! next-circle-id inc) @next-circle-id)
+               circles (r/atom #{})
+               circle-at (fn [[cx cy]] {:id (get-new-circle-id) :cx cx
+                                        :cy cy :rad default-radius})
+               add-circle-at (fn [[cx cy]]
+                               (r/rswap! circles conj (circle-at [cx cy])))
+               show-context-menu? (r/atom false)
+               !svg-element (atom nil)
+               !gui-main-element (atom nil)
                context-menu-top (r/atom 0)
                context-menu-left (r/atom 0)
-               hide-context-menu? (r/atom true)
-               default-radius 20]
+               place-context-menu-at (fn [x y]
+                                       (reset! context-menu-left x)
+                                       (reset! context-menu-top y))]
     [:div.gui
      [:div.gui-title "Circle Drawer"]
-     [:div.gui-main {:ref   (fn [elem] (reset! !gui-main elem))
+     [:div.gui-main {:ref   #(reset! !gui-main-element %)
                      :style {:position "relative"}}
-      [:canvas
-       {:ref             (fn [elem]
-                           (reset! !canvas elem))
-        :width           500
-        :height          350
-        :on-click        (fn [click-event]
-                           (if-not @hide-context-menu?
-                             (reset! hide-context-menu? true)
-                             (when-let [canvas @!canvas]
-                               (let [left-of-canvas-element (.-left (.getBoundingClientRect canvas))
-                                     top-of-canvas-element (.-top (.getBoundingClientRect canvas))
-                                     x-click (-> click-event .-clientX)
-                                     y-click (-> click-event .-clientY)
-                                     x-click-relative-to-canvas (- x-click left-of-canvas-element)
-                                     y-click-relative-to-canvas (- y-click top-of-canvas-element)
-                                     context (.getContext canvas "2d")]
-                                 (.beginPath context)
-                                 (.arc context x-click-relative-to-canvas y-click-relative-to-canvas
-                                       default-radius 0 (* 2 js/Math.PI))
-                                 (.stroke context)))))
-        :on-context-menu (fn [right-click-event]
-                           (.preventDefault right-click-event)
-                           (when-let [gui-main @!gui-main]
-                             (let [left-of-gui-main (.-left (.getBoundingClientRect gui-main))
-                                   top-of-gui-main (.-top (.getBoundingClientRect gui-main))
-                                   x-click (-> right-click-event .-clientX)
-                                   y-click (-> right-click-event .-clientY)
-                                   x-click-relative-to-gui-main (- x-click left-of-gui-main)
-                                   y-click-relative-to-gui-main (- y-click top-of-gui-main)]
-                               (reset! context-menu-left x-click-relative-to-gui-main)
-                               (reset! context-menu-top y-click-relative-to-gui-main)))
-                           (reset! hide-context-menu? false))}]
-      [:ul#context-menu {:hidden @hide-context-menu?
+      [:svg {:width           500 :height 600 :style {:background-color "#d8edeb"}
+             :ref             #(reset! !svg-element %)
+             :on-click        (fn [click]
+                                (if @show-context-menu?
+                                  (reset! show-context-menu? false)
+                                  (when-let [svg-element @!svg-element]
+                                    (add-circle-at (location-of click svg-element)))))
+             :on-context-menu (fn [right-click-event]
+                                (.preventDefault right-click-event)
+                                (when-let [gui-main-element @!gui-main-element]
+                                  (let [[x-click-relative-to-gui-main y-click-relative-to-gui-main]
+                                        (location-of right-click-event gui-main-element)]
+                                    (place-context-menu-at x-click-relative-to-gui-main y-click-relative-to-gui-main)))
+                                (reset! show-context-menu? true))}
+
+
+       (for [circle @circles :let [{:keys [cx cy rad]} circle]]
+         [:circle {:cx     cx :cy cy :r rad
+                   :stroke "black" :stroke-width 1.25 :fill "none"}])]
+      [:ul#context-menu {:hidden (not @show-context-menu?)
                          :style  {:list-style-type      "none"
                                   :padding-inline-start 0
                                   :position             "absolute"
@@ -96,7 +102,7 @@
                                   :left                 @context-menu-left}}
        [:li#context-menu-item
         {:on-click (fn [click-event]
-                     (reset! hide-context-menu? true))}
+                     (reset! show-context-menu? false))}
         "Adjust radius"]]
       [:button "Undo"]
       [:button "Redo"]]]))
