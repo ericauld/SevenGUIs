@@ -60,32 +60,19 @@
 (defn distance-from-center-of [{:keys [cx cy]} [x y]]
   (js/Math.sqrt (+ (js/Math.pow (- x cx) 2) (js/Math.pow (- y cy) 2))))
 
-(defrecord Circle [id cx cy rad hovered?])
-
-(defn compare-circles [c1 c2]
-  (compare [(:hovered? c2) (:id c1)]
-           [(:hovered? c1) (:id c2)]))
-
-(defn get-circumscribing [circles point]
-  (for [{rad :rad id :id :as circle} circles
-        :let [d (->> point (distance-from-center-of circle))]]
-    (if (< d rad) id)))
-;should be reduce f {} circles point (how just one point?) I think
-; put reduce inside above function after capturing point
-
+(defrecord Circle [index cx cy rad hovered?])
 
 (defn circle-drawer []
   (r/with-let [default-radius 20
-               next-circle-id (atom 0)
-               generate-id! (fn [] (swap! next-circle-id inc) @next-circle-id)
-               circles (r/atom #{})
-               new-circle-at (fn [[cx cy]] (map->Circle {:id       (generate-id!)
-                                                         :cx       cx
-                                                         :cy       cy
-                                                         :rad      default-radius
-                                                         :hovered? true}))
+               circles (r/atom [])
                add-circle! (fn [[cx cy]]
-                             (r/rswap! circles conj (new-circle-at [cx cy])))
+                             (let [index-of-new-circle (count @circles)]
+                               (r/rswap! circles conj
+                                         (map->Circle {:index    index-of-new-circle
+                                                       :cx       cx
+                                                       :cy       cy
+                                                       :rad      default-radius
+                                                       :hovered? true}))))
                context-menu-visible? (r/atom false)
                modal-visible? (r/atom false)
                !svg-element (atom nil)
@@ -114,12 +101,16 @@
       [:svg {:width           500 :height 600
              :ref             #(reset! !svg-element %)
              :on-click        hide-menu-or-draw-circle!
-             :on-context-menu show-context-menu!}
-       (for [{:keys [id cx cy rad]} @circles]
-         [:circle.circle (merge {:id id :cx cx :cy cy :r rad}
+             :on-context-menu show-context-menu!
+             :on-mouse-move   (fn [mouse]
+                                (when-let [svg-element @!svg-element]
+                                  (js/console.log (->> mouse (locate-relative-to svg-element) str))))}
+       (for [{:keys [index cx cy rad]} @circles]
+         [:circle.circle (merge {:id index :cx cx :cy cy :r rad}
                                 {:stroke         "black" :stroke-width 1.25 :fill "transparent"
-                                 :on-mouse-over  #(js/console.log (str id "hovered"))
-                                 :on-mouse-leave #(js/console.log (str id "un-hovered"))})])]
+                                 :on-mouse-over  nil
+                                 :on-mouse-leave nil
+                                 :on-mouse-move  nil})])]
       [:ul#context-menu
        {:hidden (not @context-menu-visible?)
         :style  {:left (get @context-menu-location 0)
