@@ -2,7 +2,8 @@
   (:require
     [reagent.core :as r]
     [reagent.dom :as d]
-    [clojure.string :as str]))
+    [clojure.string :as str]
+    [tailrecursion.priority-map :refer [priority-map priority-map-by]]))
 
 
 (defn dates-out-of-order? [date-str1 date-str2]
@@ -53,61 +54,89 @@
   [(-> event .-clientX)
    (-> event .-clientY)])
 
-(defn relative-location [event html-element]
+(defn locate-relative-to [html-element event]
   (mapv - (get-event-coords event) (get-element-coords html-element)))
+
+(defn distance-from-center-of [{:keys [cx cy]} [x y]]
+  (js/Math.sqrt (+ (js/Math.pow (- x cx) 2) (js/Math.pow (- y cy) 2))))
+
+(defrecord Circle [id cx cy rad hovered?])
+
+(defn compare-circles [c1 c2]
+  (compare [(:hovered? c2) (:id c1)]
+           [(:hovered? c1) (:id c2)]))
+
+(defn get-circumscribing [circles point]
+  (for [{rad :rad id :id :as circle} circles
+        :let [d (->> point (distance-from-center-of circle))]]
+    (if (< d rad) id)))
+;should be reduce f {} circles point (how just one point?) I think
+; put reduce inside above function after capturing point
+
 
 (defn circle-drawer []
   (r/with-let [default-radius 20
                next-circle-id (atom 0)
                generate-id! (fn [] (swap! next-circle-id inc) @next-circle-id)
                circles (r/atom #{})
-               circle-at (fn [[cx cy]] {:id (generate-id!) :cx cx
-                                        :cy cy :rad default-radius})
-               add-circle-at! (fn [[cx cy]]
-                                (r/rswap! circles conj (circle-at [cx cy])))
-               show-context-menu? (r/atom false)
+               new-circle-at (fn [[cx cy]] (map->Circle {:id       (generate-id!)
+                                                         :cx       cx
+                                                         :cy       cy
+                                                         :rad      default-radius
+                                                         :hovered? true}))
+               add-circle! (fn [[cx cy]]
+                             (r/rswap! circles conj (new-circle-at [cx cy])))
+               context-menu-visible? (r/atom false)
+               modal-visible? (r/atom false)
                !svg-element (atom nil)
                !gui-main-element (atom nil)
-               context-menu-top (r/atom 0)
-               context-menu-left (r/atom 0)
-               place-context-menu-at! (fn [x y]
-                                        (reset! context-menu-left x)
-                                        (reset! context-menu-top y))]
+               context-menu-location (r/atom [0 0])
+               hide-menu-or-draw-circle! (fn [click]
+                                           (if @context-menu-visible?
+                                             (reset! context-menu-visible? false)
+                                             (if-not @modal-visible?
+                                               ; make sure element has already been rendered
+                                               (when-let [svg-element @!svg-element]
+                                                 (->> click
+                                                      (locate-relative-to svg-element)
+                                                      add-circle!)))))
+               show-context-menu! (fn [right-click]
+                                    (.preventDefault right-click)
+                                    ; make sure element has already been rendered
+                                    (when-let [gui-main-element @!gui-main-element]
+                                      (->> right-click
+                                           (locate-relative-to gui-main-element)
+                                           (reset! context-menu-location))
+                                      (reset! context-menu-visible? true)))]
     [:div.gui
      [:div.gui-title "Circle Drawer"]
-     [:div.gui-main {:ref   #(reset! !gui-main-element %)
-                     :style {:position "relative"}}
-      [:svg {:width           500 :height 600 :style {:background-color "#d8edeb"}
+     [:div#circle-drawer-main.gui-main {:ref #(reset! !gui-main-element %)}
+      [:svg {:width           500 :height 600
              :ref             #(reset! !svg-element %)
-             :on-click        (fn [click]
-                                (if @show-context-menu?
-                                  (reset! show-context-menu? false)
-                                  (when-let [svg-element @!svg-element]
-                                    (add-circle-at! (relative-location click svg-element)))))
-             :on-context-menu (fn [right-click-event]
-                                (.preventDefault right-click-event)
-                                (when-let [gui-main-element @!gui-main-element]
-                                  (let [[x-click-relative-to-gui-main y-click-relative-to-gui-main]
-                                        (relative-location right-click-event gui-main-element)]
-                                    (place-context-menu-at! x-click-relative-to-gui-main y-click-relative-to-gui-main)))
-                                (reset! show-context-menu? true))}
-
-
-       (for [circle @circles :let [{:keys [cx cy rad]} circle]]
-         [:circle {:cx     cx :cy cy :r rad
-                   :stroke "black" :stroke-width 1.25 :fill "none"}])]
-      [:ul#context-menu {:hidden (not @show-context-menu?)
-                         :style  {:list-style-type      "none"
-                                  :padding-inline-start 0
-                                  :position             "absolute"
-                                  :top                  @context-menu-top
-                                  :left                 @context-menu-left}}
+             :on-click        hide-menu-or-draw-circle!
+             :on-context-menu show-context-menu!}
+       (for [{:keys [id cx cy rad]} @circles]
+         [:circle.circle (merge {:id id :cx cx :cy cy :r rad}
+                                {:stroke         "black" :stroke-width 1.25 :fill "transparent"
+                                 :on-mouse-over  #(js/console.log (str id "hovered"))
+                                 :on-mouse-leave #(js/console.log (str id "un-hovered"))})])]
+      [:ul#context-menu
+       {:hidden (not @context-menu-visible?)
+        :style  {:left (get @context-menu-location 0)
+                 :top  (get @context-menu-location 1)}}
        [:li#context-menu-item
-        {:on-click (fn [click-event]
-                     (reset! show-context-menu? false))}
+        {:on-click (fn [click]
+                     (reset! context-menu-visible? false)
+                     (reset! modal-visible? true))}
         "Adjust radius"]]
       [:button "Undo"]
-      [:button "Redo"]]]))
+      [:button "Redo"]
+      (if @modal-visible?
+        [:div#modal {:style {:opacity 1}}
+         "Modal"
+         [:input {:type "range"}]
+         [:button {:on-click #(reset! modal-visible? false)}
+          "Done"]])]]))
 
 (defn crud []
   (r/with-let [name-list (r/atom #{"Smith John" "Jones Jane"})

@@ -14,19 +14,51 @@ body {
     font-weight: bold;
 }
 
+svg {
+    border: #a59898 solid 1px;
+    border-radius: 5px;
+    background-color: #f8f8f8;
+}
+
+circle:focus {
+    fill: blue;
+}
+
+#modal {
+    top: 150px;
+    left: 150px;
+    position: absolute;
+    border: #a59898 solid 1px;
+    border-radius: 5px;
+    padding: 0px 4px;
+    opacity: 1;
+    background-color: #f8f8f8;
+}
+
+#circle-drawer-main {
+    position: relative;
+    display: block;
+}
+
 #context-menu  {
+    margin: 0;
     background-color: #dedede;
     padding: 0;
+    list-style-type: none;
+    padding-inline-start: 0;
+    position: absolute;
+    font-family: -apple-system;
+    font-size: large;
 }
 
 #context-menu-item {
     padding: 0px 9px;
-    margin: 1px 0px;
+    margin: 0;
     font-size: .8em;
 }
 
 #context-menu-item:hover {
-    background-color: #4e66ff;
+    background-color: #40aee0;
     cursor: default;
 }
 
