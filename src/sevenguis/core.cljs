@@ -63,18 +63,21 @@
 
 (defrecord Circle [index cx cy rad])
 
-(defn squared-distance-from-if-circumscribing [point circle]
-  (let [squared-radius (-> circle :rad (js/Math.pow 2))
-        squared-dist (get-sqr-distance point circle)
-        point-is-inside-circle? (< squared-dist squared-radius)]
-    (if point-is-inside-circle?
-      [(:index circle) squared-dist])))
-
-(defn nearest-circumscribing-circle-from [circles point]
-  (let [get-squared-distance-to-center-of (partial squared-distance-from-if-circumscribing point)
-        squared-distances (filter some? (map get-squared-distance-to-center-of circles))]
-    (first (apply min-key second squared-distances))))
-
+(defn index-of-nearest-circumscribing-among [circles point]
+  (let [n-circles (count circles)]
+    (loop [index-of-min nil
+           min-sqr-distance nil
+           current-index 0]
+      (let [terminate-loop? (-> current-index (+ 1) (> n-circles))]
+        (if terminate-loop?
+          index-of-min
+          (let [current-circle (get circles current-index)
+                sqr-distance (get-sqr-distance point current-circle)
+                sqr-radius (-> current-circle :rad (js/Math.pow 2))]
+            (if (and (< sqr-distance sqr-radius)
+                     (or (< sqr-distance min-sqr-distance) (nil? min-sqr-distance)))
+              (recur current-index sqr-distance (inc current-index))
+              (recur index-of-min min-sqr-distance (inc current-index)))))))))
 
 (defn circle-drawer []
   (r/with-let
@@ -82,8 +85,17 @@
      draw-settings {:stroke       "black"
                     :stroke-width 1.25}
      circles (r/atom [])
-     clear-circles! #(reset! circles [])
+     undo-list (r/atom [])
+     _ (add-watch circles ::undo-watcher
+                  (fn [_ _ old _]
+                    (r/rswap! undo-list conj old)))
+     undo! (fn []
+             (when-let [prev-state (peek @undo-list)]
+               (reset! circles prev-state)
+               (reset! undo-list (pop @undo-list))))
      index-of-selected-circle (r/atom nil)
+     clear-circles! #(reset! circles [])
+     selected-circle-color "#6bcdff"
      context-menu-visible? (r/atom false)
      modal-menu-visible? (r/atom false)
      !svg-element (atom nil)
@@ -104,9 +116,9 @@
      update-mouse-location! (fn [mouse]
                               ; make sure element has already been rendered
                               (when-let [svg-element @!svg-element]
-                                (let [index-of-nearest-circle (->> mouse
-                                                                   (coordinates-relative-to svg-element)
-                                                                   (nearest-circumscribing-circle-from @circles))]
+                                (let [index-of-nearest-circle
+                                      (->> mouse (coordinates-relative-to svg-element)
+                                           (index-of-nearest-circumscribing-among @circles))]
                                   (if (not= index-of-nearest-circle @index-of-selected-circle)
                                     (select-circle-with-index! index-of-nearest-circle)))))
      change-radius! (fn [circle-index radius]
@@ -136,9 +148,12 @@
              :on-mouse-move   #(if-not (or @modal-menu-visible? @context-menu-visible?)
                                  (update-mouse-location! %))}
        (doall (for [{:keys [index cx cy rad]} @circles]
-                [:circle.circle (merge draw-settings
-                                       {:id   index :cx cx :cy cy :r rad
-                                        :fill (if (= @index-of-selected-circle index) "#6bcdff" "transparent")})]))]
+                [:circle.circle
+                 (merge draw-settings
+                        {:id   index :cx cx :cy cy :r rad
+                         :fill (if (= @index-of-selected-circle index)
+                                 selected-circle-color
+                                 "transparent")})]))]
       [:ul#context-menu
        {:hidden (not @context-menu-visible?)
         :style  {:left (get @context-menu-location 0)
@@ -146,7 +161,9 @@
        [:li#context-menu-item
         {:on-click #(do (reset! context-menu-visible? false) (reset! modal-menu-visible? true))}
         "Adjust radius"]]
-      [:button "Undo"]
+      [:button {:on-click undo!
+                :disabled (empty? @undo-list)}
+       "Undo"]
       [:button "Redo"]
       [:button {:on-click clear-circles!} "Clear all"]
       (if @modal-menu-visible?
