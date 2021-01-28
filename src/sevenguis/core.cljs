@@ -54,58 +54,69 @@
   [(-> event .-clientX)
    (-> event .-clientY)])
 
-(defn locate-relative-to [html-element event]
+(defn coordinates-relative-to [html-element event]
   (mapv - (get-event-coords event) (get-element-coords html-element)))
 
-(defn distance-from-center-of [{:keys [cx cy]} [x y]]
-  (js/Math.sqrt (+ (js/Math.pow (- x cx) 2) (js/Math.pow (- y cy) 2))))
+(defn squared-distance-from-center [[x y] {:keys [cx cy]}]
+  (+ (js/Math.pow (- x cx) 2) (js/Math.pow (- y cy) 2)))
 
-(defrecord Circle [id cx cy rad hovered?])
+(defrecord Circle [index cx cy rad])
 
-(defn compare-circles [c1 c2]
-  (compare [(:hovered? c2) (:id c1)]
-           [(:hovered? c1) (:id c2)]))
+(defn squared-distance-from-if-circumscribing [point circle]
+  (let [squared-radius (js/Math.pow (:rad circle) 2)]
+    (if (-> point (squared-distance-from-center circle) (< squared-radius))
+      [(:index circle) squared-distance-from-center])))
 
-(defn get-circumscribing [circles point]
-  (for [{rad :rad id :id :as circle} circles
-        :let [d (->> point (distance-from-center-of circle))]]
-    (if (< d rad) id)))
-;should be reduce f {} circles point (how just one point?) I think
-; put reduce inside above function after capturing point
-
+(defn index-of-nearest-of-circumscribing [circles point]
+  (let [squared-distance-to-center-of (partial squared-distance-from-if-circumscribing point)
+        distances-from-circumscribing-circles (filter some? (map squared-distance-to-center-of circles))]
+    (first (apply min-key second distances-from-circumscribing-circles))))
 
 (defn circle-drawer []
-  (r/with-let [default-radius 20
-               next-circle-id (atom 0)
-               generate-id! (fn [] (swap! next-circle-id inc) @next-circle-id)
-               circles (r/atom #{})
-               new-circle-at (fn [[cx cy]] (map->Circle {:id       (generate-id!)
-                                                         :cx       cx
-                                                         :cy       cy
-                                                         :rad      default-radius
-                                                         :hovered? true}))
-               add-circle! (fn [[cx cy]]
-                             (r/rswap! circles conj (new-circle-at [cx cy])))
+  (r/with-let [default-radius 40
+               default-svg-settings {:stroke       "black"
+                                     :stroke-width 1.25}
+               circles (r/atom [])
+               clear-circles! #(reset! circles [])
+               selected-circle (r/atom nil)
                context-menu-visible? (r/atom false)
-               modal-visible? (r/atom false)
+               modal-menu-visible? (r/atom false)
                !svg-element (atom nil)
                !gui-main-element (atom nil)
                context-menu-location (r/atom [0 0])
+               select! #(reset! selected-circle %)
+               add-circle! (fn [[cx cy]]
+                             (let [index-of-new-circle (count @circles)]
+                               (r/rswap! circles conj
+                                         (map->Circle {:index index-of-new-circle
+                                                       :cx    cx
+                                                       :cy    cy
+                                                       :rad   default-radius}))
+                               (select! index-of-new-circle)))
+               update-mouse-location! (fn [mouse]
+                                        ; make sure element has already been rendered
+                                        (when-let [svg-element @!svg-element]
+                                          (let [index-of-nearest (->> mouse
+                                                                      (coordinates-relative-to svg-element)
+                                                                      (index-of-nearest-of-circumscribing @circles))]
+                                            (if (not= index-of-nearest @selected-circle)
+                                              (select! index-of-nearest)))))
+               change-radius! (fn [circle-index radius]
+                                (r/rswap! circles assoc-in [circle-index :rad] radius))
                hide-menu-or-draw-circle! (fn [click]
                                            (if @context-menu-visible?
                                              (reset! context-menu-visible? false)
-                                             (if-not @modal-visible?
+                                             (if-not @modal-menu-visible?
                                                ; make sure element has already been rendered
                                                (when-let [svg-element @!svg-element]
                                                  (->> click
-                                                      (locate-relative-to svg-element)
+                                                      (coordinates-relative-to svg-element)
                                                       add-circle!)))))
                show-context-menu! (fn [right-click]
-                                    (.preventDefault right-click)
                                     ; make sure element has already been rendered
                                     (when-let [gui-main-element @!gui-main-element]
                                       (->> right-click
-                                           (locate-relative-to gui-main-element)
+                                           (coordinates-relative-to gui-main-element)
                                            (reset! context-menu-location))
                                       (reset! context-menu-visible? true)))]
     [:div.gui
@@ -114,28 +125,34 @@
       [:svg {:width           500 :height 600
              :ref             #(reset! !svg-element %)
              :on-click        hide-menu-or-draw-circle!
-             :on-context-menu show-context-menu!}
-       (for [{:keys [id cx cy rad]} @circles]
-         [:circle.circle (merge {:id id :cx cx :cy cy :r rad}
-                                {:stroke         "black" :stroke-width 1.25 :fill "transparent"
-                                 :on-mouse-over  #(js/console.log (str id "hovered"))
-                                 :on-mouse-leave #(js/console.log (str id "un-hovered"))})])]
+             :on-context-menu #(if (some? @selected-circle)
+                                 (do (.preventDefault %) (show-context-menu! %)))
+             :on-mouse-move   #(if-not (or @modal-menu-visible? @context-menu-visible?)
+                                 (update-mouse-location! %))}
+       (doall (for [{:keys [index cx cy rad]} @circles]
+                [:circle.circle (merge default-svg-settings
+                                       {:id   index :cx cx :cy cy :r rad
+                                        :fill (if (= @selected-circle index) "#6bcdff" "transparent")})]))]
       [:ul#context-menu
        {:hidden (not @context-menu-visible?)
         :style  {:left (get @context-menu-location 0)
                  :top  (get @context-menu-location 1)}}
        [:li#context-menu-item
-        {:on-click (fn [click]
-                     (reset! context-menu-visible? false)
-                     (reset! modal-visible? true))}
+        {:on-click #(do (reset! context-menu-visible? false) (reset! modal-menu-visible? true))}
         "Adjust radius"]]
       [:button "Undo"]
       [:button "Redo"]
-      (if @modal-visible?
+      [:button {:on-click clear-circles!}
+       "Clear all"]
+      (if @modal-menu-visible?
         [:div#modal {:style {:opacity 1}}
          "Modal"
-         [:input {:type "range"}]
-         [:button {:on-click #(reset! modal-visible? false)}
+         [:input {:type      "range" :min 0 :max 200
+                  :value (-> @circles (get @selected-circle) :rad)
+                  :on-change (fn [event]
+                               (let [user-input (get-event-value event)]
+                                 (change-radius! @selected-circle user-input)))}]
+         [:button {:on-click #(do (reset! modal-menu-visible? false) (update-mouse-location! %))}
           "Done"]])]]))
 
 (defn crud []
