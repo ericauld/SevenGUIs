@@ -91,8 +91,12 @@
                     (r/rswap! undo-list conj old)))
      undo! (fn []
              (when-let [prev-state (peek @undo-list)]
+               (js/console.log (str prev-state))
                (reset! circles prev-state)
-               (reset! undo-list (pop @undo-list))))
+               (js/console.log (str @undo-list))
+               (js/console.log (str (pop @undo-list)))
+               (reset! undo-list (pop (pop @undo-list)))
+               (js/console.log (str @undo-list))))
      index-of-selected-circle (r/atom nil)
      clear-circles! #(reset! circles [])
      selected-circle-color "#6bcdff"
@@ -159,7 +163,8 @@
         :style  {:left (get @context-menu-location 0)
                  :top  (get @context-menu-location 1)}}
        [:li#context-menu-item
-        {:on-click #(do (reset! context-menu-visible? false) (reset! modal-menu-visible? true))}
+        {:on-click #(do (reset! context-menu-visible? false)
+                        (reset! modal-menu-visible? true))}
         "Adjust radius"]]
       [:button {:on-click undo!
                 :disabled (empty? @undo-list)}
