@@ -87,14 +87,24 @@
      selected-circle-color "#6bcdff"
      circles (r/atom [])
      undo-list (r/atom [])
+     redo-list (r/atom [])
      watcher! (fn [_ _ old _] (r/rswap! undo-list conj old))
      turn-on-watch! #(add-watch circles ::undo-watcher watcher!)
      turn-off-watch! #(remove-watch circles ::undo-watcher)
      undo! (fn []
              (when-let [prev-state (peek @undo-list)]
-               (let [prev-undo @undo-list]
+               (let [prev-undo @undo-list
+                     current-state @circles]
                  (reset! circles prev-state)
-                 (reset! undo-list (pop prev-undo)))))
+                 (reset! undo-list (pop prev-undo))
+                 (r/rswap! redo-list conj current-state))))
+     redo! (fn []
+             (when-let [redo-state (peek @redo-list)]
+               (let [current-state @circles
+                     prev-undo @undo-list]
+                 (reset! circles redo-state)
+                 (reset! undo-list (conj prev-undo current-state))
+                 (r/rswap! redo-list pop))))
      index-of-selected-circle (r/atom nil)
      clear-circles! #(reset! circles [])
      context-menu-visible? (r/atom false)
@@ -168,7 +178,9 @@
       [:button {:on-click undo!
                 :disabled (empty? @undo-list)}
        "Undo"]
-      [:button "Redo"]
+      [:button {:on-click redo!
+                :disabled (empty? @redo-list)}
+       "Redo"]
       [:button {:on-click clear-circles!} "Clear all"]
       (if @modal-menu-visible?
         [:div#modal {:on-key-down #(if (-> % .-key (= "Escape"))
