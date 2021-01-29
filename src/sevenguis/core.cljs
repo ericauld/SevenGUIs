@@ -84,12 +84,11 @@
     [default-radius 40
      draw-settings {:stroke       "black"
                     :stroke-width 1.25}
+     selected-circle-color "#6bcdff"
      circles (r/atom [])
      undo-list (r/atom [])
-     watcher-func (fn [_ _ old _]
-                    (js/console.log "Watcher called")
-                    (r/rswap! undo-list conj old))
-     turn-on-watch! #(add-watch circles ::undo-watcher watcher-func)
+     watcher! (fn [_ _ old _] (r/rswap! undo-list conj old))
+     turn-on-watch! #(add-watch circles ::undo-watcher watcher!)
      turn-off-watch! #(remove-watch circles ::undo-watcher)
      undo! (fn []
              (when-let [prev-state (peek @undo-list)]
@@ -98,7 +97,6 @@
                  (reset! undo-list (pop prev-undo)))))
      index-of-selected-circle (r/atom nil)
      clear-circles! #(reset! circles [])
-     selected-circle-color "#6bcdff"
      context-menu-visible? (r/atom false)
      modal-menu-visible? (r/atom false)
      !svg-element (atom nil)
@@ -138,7 +136,6 @@
                                  (if @context-menu-visible?
                                    (hide-context-menu!)
                                    (if-not @modal-menu-visible?
-                                     ; make sure element has already been rendered
                                      (add-circle-at-click! click))))
      _ (turn-on-watch!)]
     [:div.gui
@@ -152,12 +149,12 @@
              :on-mouse-move   #(if-not (or @modal-menu-visible? @context-menu-visible?)
                                  (update-mouse-location! %))}
        (doall (for [{:keys [index cx cy rad]} @circles]
-                [:circle.circle
-                 (merge draw-settings
-                        {:id   index :cx cx :cy cy :r rad
-                         :fill (if (= @index-of-selected-circle index)
-                                 selected-circle-color
-                                 "transparent")})]))]
+                ^{:key index} [:circle.circle
+                               (merge draw-settings
+                                      {:id   index :cx cx :cy cy :r rad
+                                       :fill (if (= @index-of-selected-circle index)
+                                               selected-circle-color
+                                               "transparent")})]))]
       [:ul#context-menu
        {:hidden (not @context-menu-visible?)
         :style  {:left (get @context-menu-location 0)
@@ -245,8 +242,8 @@
               prefix-as-regex (re-pattern (str prefix ".*"))
               matches-prefix? (fn [name] (re-matches prefix-as-regex name))
               filtered-names (filter matches-prefix? @name-list)]
-          (for [name filtered-names :let [[last first] (str/split name " ")]]
-            [:option {:value name} (str last ", " first)]))]]]]))
+          (doall (for [name filtered-names :let [[last first] (str/split name " ")]]
+                   ^{:key name} [:option {:value name} (str last ", " first)])))]]]]))
 
 (defn timer []
   (r/with-let [decimal-precision 1
