@@ -79,11 +79,13 @@
      selected-circle-color "#6bcdff"
      unselected-circle-color "transparent"
      circles (r/atom [])
-     index-of-selected-circle (r/atom nil)
      selected-circle (r/atom nil)
-     select-circle-with-index! #(reset! index-of-selected-circle %)
      select-circle! #(reset! selected-circle %)
-     unselect-circles! #(reset! selected-circle nil)
+     unselect! #(reset! selected-circle nil)
+     reset-radius! (fn [circle-atom new-radius]
+                     (let [index-of-circle-atom (:index @circle-atom)]
+                       (r/rswap! circle-atom assoc :rad new-radius)
+                       (r/rswap! circles assoc-in [index-of-circle-atom :rad] new-radius)))
      clear-circles! #(reset! circles [])
      undo-list (r/atom [])
      redo-list (r/atom [])
@@ -130,20 +132,15 @@
                                                              :cy    click-y
                                                              :rad   default-radius})]
                                 (r/rswap! circles conj new-circle)
-                                (select-circle-with-index! index-of-new-circle) 
                                 (select-circle! (@circles index-of-new-circle)))))
      update-mouse-location! (fn [mouse]
                               ; make sure element has already been rendered
                               (when-let [svg-element @!svg-element]
                                 (let [nearest-circumscribing-circle (->> mouse
                                                                          (coordinates-relative-to svg-element)
-                                                                         (nearest-circumscribing @circles))
-                                      index-of-nearest-circle (:index nearest-circumscribing-circle)]
+                                                                         (nearest-circumscribing @circles))]
                                   (if (not= nearest-circumscribing-circle @selected-circle)
-                                    (do (select-circle-with-index! index-of-nearest-circle)
-                                        (select-circle! nearest-circumscribing-circle))))))
-     change-radius! (fn [circle-index radius]
-                      (r/rswap! circles assoc-in [circle-index :rad] radius))
+                                    (select-circle! nearest-circumscribing-circle)))))
      hide-context-menu! #(reset! context-menu-visible? false)
      show-context-menu-at! (fn [click]
                              ; make sure element has already been rendered
@@ -170,7 +167,7 @@
              :on-mouse-move   #(if-not (or @modal-menu-visible? @context-menu-visible?)
                                  (update-mouse-location! %))
              :on-mouse-leave  #(if-not (or @context-menu-visible? @modal-menu-visible?)
-                                 (unselect-circles!))}
+                                 (unselect!))}
        (doall (for [{:keys [index cx cy rad] :as circle} @circles]
                 ^{:key index} [:circle.circle
                                (merge draw-settings
@@ -203,14 +200,15 @@
                      :style       {:opacity 1}}
          "Adjust radius"
          [:input {:type      "range" :min 0 :max 400
-                  :value     (-> @circles (get @index-of-selected-circle) :rad)
+                  :value     (-> @selected-circle :rad)
                   :on-change (fn [event]
                                (let [user-input (js/parseInt (get-event-value event))]
-                                 (change-radius! @index-of-selected-circle user-input)))
+                                 (reset-radius! selected-circle user-input)))
                   :style     {:display "block"}}]
          [:button {:on-click #(do (reset! modal-menu-visible? false)
                                   (update-mouse-location! %)
-                                  (if (= @circles (peek @undo-list)) (r/rswap! undo-list pop))
+                                  (if (= @circles (peek @undo-list))
+                                    (r/rswap! undo-list pop))
                                   (track-edits-for-undo-redo))}
           "Done"]])]]))
 
