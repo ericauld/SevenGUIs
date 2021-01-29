@@ -57,30 +57,19 @@
 (defn coordinates-relative-to [html-element event]
   (mapv - (get-event-coords event) (get-element-coords html-element)))
 
-(defn get-sqr-distance [[x y] {:keys [cx cy] :as _circle}]
+(defn sqr-distance-from [[x y] {:keys [cx cy] :as _circle}]
   (+ (-> x (- cx) (js/Math.pow 2))
      (-> y (- cy) (js/Math.pow 2))))
 
-(defn circumscribes? [point {:keys [cx cy rad] :as circle}]
-  (-> point (get-sqr-distance circle) (< (js/Math.pow rad 2))))
+(defn circumscribes? [point {rad :rad :as circle}]
+  (-> point (sqr-distance-from circle) (< (js/Math.pow rad 2))))
 
 (defrecord Circle [index cx cy rad])
 
 (defn nearest-circumscribing [circles point]
-  (let [n-circles (count circles)]
-    (loop [index-of-min nil
-           min-sqr-distance nil
-           current-index 0]
-      (let [terminate-loop? (-> current-index (+ 1) (> n-circles))]
-        (if terminate-loop?
-          (if index-of-min (circles index-of-min))
-          (let [current-circle (get circles current-index)
-                sqr-distance (get-sqr-distance point current-circle)
-                sqr-radius (-> current-circle :rad (js/Math.pow 2))]
-            (if (and (< sqr-distance sqr-radius)
-                     (or (< sqr-distance min-sqr-distance) (nil? min-sqr-distance)))
-              (recur current-index sqr-distance (inc current-index))
-              (recur index-of-min min-sqr-distance (inc current-index)))))))))
+  (let [circumscribes-point? (partial circumscribes? point)
+        sqr-distance-from-point (partial sqr-distance-from point)]
+    (apply min-key sqr-distance-from-point (filter circumscribes-point? circles))))
 
 (defn circle-drawer []
   (r/with-let
@@ -90,39 +79,42 @@
      selected-circle-color "#6bcdff"
      unselected-circle-color "transparent"
      circles (r/atom [])
+     index-of-selected-circle (r/atom nil)
+     selected-circle (r/atom nil)
+     select-circle-with-index! #(reset! index-of-selected-circle %)
+     select-circle! #(reset! selected-circle %)
+     unselect-circles! #(reset! selected-circle nil)
+     clear-circles! #(reset! circles [])
      undo-list (r/atom [])
      redo-list (r/atom [])
      clear-redo-list! #(reset! redo-list [])
-     pause-redo-clearer! #(remove-watch circles ::redo-clearer)
-     resume-redo-clearer! #(add-watch circles ::redo-clearer clear-redo-list!)
+     start-clearing-redos-on-every-edit #(add-watch circles ::redo-clearer clear-redo-list!)
+     stop-clearing-redos-on-every-edit #(remove-watch circles ::redo-clearer)
      undo-watcher! (fn [_ _ old _] (r/rswap! undo-list conj old))
-     start-tracking-edits! #(do (add-watch circles ::undo-watcher undo-watcher!)
-                                (resume-redo-clearer!)) 
-     pause-tracking-edits! #(do (remove-watch circles ::undo-watcher)
-                                (pause-redo-clearer!))
+     start-tracking-undos #(add-watch circles ::undo-watcher undo-watcher!)
+     stop-tracking-undos #(remove-watch circles ::undo-watcher)
+     track-edits-for-undo-redo #(do (start-tracking-undos)
+                                    (start-clearing-redos-on-every-edit))
+     stop-tracking-edits-for-undo-redo #(do (stop-tracking-undos)
+                                            (stop-clearing-redos-on-every-edit))
      undo! (fn []
              (when-let [prev-state (peek @undo-list)]
-               (let [prev-undo @undo-list
+               (let [prev-undo-list @undo-list
                      current-state @circles]
-                 (pause-redo-clearer!)
+                 (stop-tracking-edits-for-undo-redo)
                  (reset! circles prev-state)
-                 (resume-redo-clearer!)
-                 (reset! undo-list (pop prev-undo))
+                 (track-edits-for-undo-redo)
+                 (r/rswap! undo-list pop)
                  (r/rswap! redo-list conj current-state))))
      redo! (fn []
              (when-let [redo-state (peek @redo-list)]
                (let [current-state @circles
                      prev-undo @undo-list]
-                 (pause-redo-clearer!)
+                 (stop-clearing-redos-on-every-edit)
                  (reset! circles redo-state)
-                 (resume-redo-clearer!)
+                 (start-clearing-redos-on-every-edit)
                  (reset! undo-list (conj prev-undo current-state))
                  (r/rswap! redo-list pop))))
-     index-of-selected-circle (r/atom nil)
-     selected-circle (r/atom nil)
-     select-circle-with-index! #(reset! index-of-selected-circle %)
-     select-circle! #(reset! selected-circle %)
-     clear-circles! #(reset! circles [])
      context-menu-visible? (r/atom false)
      modal-menu-visible? (r/atom false)
      !svg-element (atom nil)
@@ -138,7 +130,7 @@
                                                              :cy    click-y
                                                              :rad   default-radius})]
                                 (r/rswap! circles conj new-circle)
-                                (select-circle-with-index! index-of-new-circle) ;TODO remove and refactor in terms of circles
+                                (select-circle-with-index! index-of-new-circle) 
                                 (select-circle! (@circles index-of-new-circle)))))
      update-mouse-location! (fn [mouse]
                               ; make sure element has already been rendered
@@ -165,7 +157,7 @@
                                    (hide-context-menu!)
                                    (if-not @modal-menu-visible?
                                      (add-circle-at-click! click))))
-     _ (start-tracking-edits!)]
+     _ (track-edits-for-undo-redo)]
     [:div.gui
      [:div.gui-title "Circle Drawer"]
      [:div#circle-drawer-main.gui-main {:ref #(reset! !gui-main-element %)}
@@ -176,7 +168,9 @@
                                             (do (.preventDefault click)
                                                 (show-context-menu-at! click))))
              :on-mouse-move   #(if-not (or @modal-menu-visible? @context-menu-visible?)
-                                 (update-mouse-location! %))}
+                                 (update-mouse-location! %))
+             :on-mouse-leave  #(if-not (or @context-menu-visible? @modal-menu-visible?)
+                                 (unselect-circles!))}
        (doall (for [{:keys [index cx cy rad] :as circle} @circles]
                 ^{:key index} [:circle.circle
                                (merge draw-settings
@@ -192,7 +186,7 @@
         {:on-click #(do (reset! context-menu-visible? false)
                         (reset! modal-menu-visible? true)
                         (r/rswap! undo-list conj @circles)
-                        (pause-tracking-edits!))}
+                        (stop-tracking-edits-for-undo-redo))}
         "Adjust radius"]]
       [:button {:on-click undo!
                 :disabled (empty? @undo-list)}
@@ -217,7 +211,7 @@
          [:button {:on-click #(do (reset! modal-menu-visible? false)
                                   (update-mouse-location! %)
                                   (if (= @circles (peek @undo-list)) (r/rswap! undo-list pop))
-                                  (start-tracking-edits!))}
+                                  (track-edits-for-undo-redo))}
           "Done"]])]]))
 
 (defn crud []
