@@ -86,17 +86,16 @@
                     :stroke-width 1.25}
      circles (r/atom [])
      undo-list (r/atom [])
-     _ (add-watch circles ::undo-watcher
-                  (fn [_ _ old _]
-                    (r/rswap! undo-list conj old)))
+     watcher-func (fn [_ _ old _]
+                    (js/console.log "Watcher called")
+                    (r/rswap! undo-list conj old))
+     turn-on-watch! #(add-watch circles ::undo-watcher watcher-func)
+     turn-off-watch! #(remove-watch circles ::undo-watcher)
      undo! (fn []
              (when-let [prev-state (peek @undo-list)]
-               (js/console.log (str prev-state))
-               (reset! circles prev-state)
-               (js/console.log (str @undo-list))
-               (js/console.log (str (pop @undo-list)))
-               (reset! undo-list (pop (pop @undo-list)))
-               (js/console.log (str @undo-list))))
+               (let [prev-undo @undo-list]
+                 (reset! circles prev-state)
+                 (reset! undo-list (pop prev-undo)))))
      index-of-selected-circle (r/atom nil)
      clear-circles! #(reset! circles [])
      selected-circle-color "#6bcdff"
@@ -140,7 +139,8 @@
                                    (hide-context-menu!)
                                    (if-not @modal-menu-visible?
                                      ; make sure element has already been rendered
-                                     (add-circle-at-click! click))))]
+                                     (add-circle-at-click! click))))
+     _ (turn-on-watch!)]
     [:div.gui
      [:div.gui-title "Circle Drawer"]
      [:div#circle-drawer-main.gui-main {:ref #(reset! !gui-main-element %)}
@@ -164,7 +164,9 @@
                  :top  (get @context-menu-location 1)}}
        [:li#context-menu-item
         {:on-click #(do (reset! context-menu-visible? false)
-                        (reset! modal-menu-visible? true))}
+                        (reset! modal-menu-visible? true)
+                        (r/rswap! undo-list conj @circles)
+                        (turn-off-watch!))}
         "Adjust radius"]]
       [:button {:on-click undo!
                 :disabled (empty? @undo-list)}
@@ -182,7 +184,10 @@
                                (let [user-input (js/parseInt (get-event-value event))]
                                  (change-radius! @index-of-selected-circle user-input)))
                   :style     {:display "block"}}]
-         [:button {:on-click #(do (reset! modal-menu-visible? false) (update-mouse-location! %))}
+         [:button {:on-click #(do (reset! modal-menu-visible? false)
+                                  (update-mouse-location! %)
+                                  (if (= @circles (peek @undo-list)) (r/rswap! undo-list pop))
+                                  (turn-on-watch!))}
           "Done"]])]]))
 
 (defn crud []
