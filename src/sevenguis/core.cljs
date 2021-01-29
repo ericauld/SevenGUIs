@@ -88,21 +88,31 @@
      circles (r/atom [])
      undo-list (r/atom [])
      redo-list (r/atom [])
-     watcher! (fn [_ _ old _] (r/rswap! undo-list conj old))
-     turn-on-watch! #(add-watch circles ::undo-watcher watcher!)
-     turn-off-watch! #(remove-watch circles ::undo-watcher)
+     clear-redo-list! #(do (reset! redo-list [])
+                           (js/console.log "Redo list cleared"))
+     pause-redo-clearer! #(remove-watch circles ::redo-clearer)
+     resume-redo-clearer! #(add-watch circles ::redo-clearer clear-redo-list!)
+     undo-watcher! (fn [_ _ old _] (r/rswap! undo-list conj old))
+     start-tracking-edits! #(do (add-watch circles ::undo-watcher undo-watcher!)
+                                (resume-redo-clearer!)) 
+     pause-tracking-edits! #(do (remove-watch circles ::undo-watcher)
+                                (pause-redo-clearer!))
      undo! (fn []
              (when-let [prev-state (peek @undo-list)]
                (let [prev-undo @undo-list
                      current-state @circles]
+                 (pause-redo-clearer!)
                  (reset! circles prev-state)
+                 (resume-redo-clearer!)
                  (reset! undo-list (pop prev-undo))
                  (r/rswap! redo-list conj current-state))))
      redo! (fn []
              (when-let [redo-state (peek @redo-list)]
                (let [current-state @circles
                      prev-undo @undo-list]
+                 (pause-redo-clearer!)
                  (reset! circles redo-state)
+                 (resume-redo-clearer!)
                  (reset! undo-list (conj prev-undo current-state))
                  (r/rswap! redo-list pop))))
      index-of-selected-circle (r/atom nil)
@@ -147,7 +157,7 @@
                                    (hide-context-menu!)
                                    (if-not @modal-menu-visible?
                                      (add-circle-at-click! click))))
-     _ (turn-on-watch!)]
+     _ (start-tracking-edits!)]
     [:div.gui
      [:div.gui-title "Circle Drawer"]
      [:div#circle-drawer-main.gui-main {:ref #(reset! !gui-main-element %)}
@@ -173,7 +183,7 @@
         {:on-click #(do (reset! context-menu-visible? false)
                         (reset! modal-menu-visible? true)
                         (r/rswap! undo-list conj @circles)
-                        (turn-off-watch!))}
+                        (pause-tracking-edits!))}
         "Adjust radius"]]
       [:button {:on-click undo!
                 :disabled (empty? @undo-list)}
@@ -196,7 +206,7 @@
          [:button {:on-click #(do (reset! modal-menu-visible? false)
                                   (update-mouse-location! %)
                                   (if (= @circles (peek @undo-list)) (r/rswap! undo-list pop))
-                                  (turn-on-watch!))}
+                                  (start-tracking-edits!))}
           "Done"]])]]))
 
 (defn crud []
