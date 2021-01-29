@@ -57,20 +57,23 @@
 (defn coordinates-relative-to [html-element event]
   (mapv - (get-event-coords event) (get-element-coords html-element)))
 
-(defn get-sqr-distance [[x y] {:keys [cx cy]}]
+(defn get-sqr-distance [[x y] {:keys [cx cy] :as _circle}]
   (+ (-> x (- cx) (js/Math.pow 2))
      (-> y (- cy) (js/Math.pow 2))))
 
+(defn circumscribes? [point {:keys [cx cy rad] :as circle}]
+  (-> point (get-sqr-distance circle) (< (js/Math.pow rad 2))))
+
 (defrecord Circle [index cx cy rad])
 
-(defn index-of-nearest-circumscribing-among [circles point]
+(defn nearest-circumscribing [circles point]
   (let [n-circles (count circles)]
     (loop [index-of-min nil
            min-sqr-distance nil
            current-index 0]
       (let [terminate-loop? (-> current-index (+ 1) (> n-circles))]
         (if terminate-loop?
-          index-of-min
+          (if index-of-min (circles index-of-min))
           (let [current-circle (get circles current-index)
                 sqr-distance (get-sqr-distance point current-circle)
                 sqr-radius (-> current-circle :rad (js/Math.pow 2))]
@@ -85,11 +88,11 @@
      draw-settings {:stroke       "black"
                     :stroke-width 1.25}
      selected-circle-color "#6bcdff"
+     unselected-circle-color "transparent"
      circles (r/atom [])
      undo-list (r/atom [])
      redo-list (r/atom [])
-     clear-redo-list! #(do (reset! redo-list [])
-                           (js/console.log "Redo list cleared"))
+     clear-redo-list! #(reset! redo-list [])
      pause-redo-clearer! #(remove-watch circles ::redo-clearer)
      resume-redo-clearer! #(add-watch circles ::redo-clearer clear-redo-list!)
      undo-watcher! (fn [_ _ old _] (r/rswap! undo-list conj old))
@@ -116,32 +119,37 @@
                  (reset! undo-list (conj prev-undo current-state))
                  (r/rswap! redo-list pop))))
      index-of-selected-circle (r/atom nil)
+     selected-circle (r/atom nil)
+     select-circle-with-index! #(reset! index-of-selected-circle %)
+     select-circle! #(reset! selected-circle %)
      clear-circles! #(reset! circles [])
      context-menu-visible? (r/atom false)
      modal-menu-visible? (r/atom false)
      !svg-element (atom nil)
      !gui-main-element (atom nil)
      context-menu-location (r/atom [0 0])
-     select-circle-with-index! #(reset! index-of-selected-circle %)
      add-circle-at-click! (fn [click]
                             ; make sure element has already been rendered
                             (when-let [svg-element @!svg-element]
                               (let [index-of-new-circle (count @circles)
-                                    [click-x click-y] (->> click (coordinates-relative-to svg-element))]
-                                (r/rswap! circles conj
-                                          (map->Circle {:index index-of-new-circle
-                                                        :cx    click-x
-                                                        :cy    click-y
-                                                        :rad   default-radius}))
-                                (select-circle-with-index! index-of-new-circle))))
+                                    [click-x click-y] (->> click (coordinates-relative-to svg-element))
+                                    new-circle (map->Circle {:index index-of-new-circle
+                                                             :cx    click-x
+                                                             :cy    click-y
+                                                             :rad   default-radius})]
+                                (r/rswap! circles conj new-circle)
+                                (select-circle-with-index! index-of-new-circle) ;TODO remove and refactor in terms of circles
+                                (select-circle! (@circles index-of-new-circle)))))
      update-mouse-location! (fn [mouse]
                               ; make sure element has already been rendered
                               (when-let [svg-element @!svg-element]
-                                (let [index-of-nearest-circle
-                                      (->> mouse (coordinates-relative-to svg-element)
-                                           (index-of-nearest-circumscribing-among @circles))]
-                                  (if (not= index-of-nearest-circle @index-of-selected-circle)
-                                    (select-circle-with-index! index-of-nearest-circle)))))
+                                (let [nearest-circumscribing-circle (->> mouse
+                                                                         (coordinates-relative-to svg-element)
+                                                                         (nearest-circumscribing @circles))
+                                      index-of-nearest-circle (:index nearest-circumscribing-circle)]
+                                  (if (not= nearest-circumscribing-circle @selected-circle)
+                                    (do (select-circle-with-index! index-of-nearest-circle)
+                                        (select-circle! nearest-circumscribing-circle))))))
      change-radius! (fn [circle-index radius]
                       (r/rswap! circles assoc-in [circle-index :rad] radius))
      hide-context-menu! #(reset! context-menu-visible? false)
@@ -164,17 +172,18 @@
       [:svg {:width           500 :height 600
              :ref             #(reset! !svg-element %)
              :on-click        hide-menu-or-draw-circle!
-             :on-context-menu #(if (some? @index-of-selected-circle)
-                                 (do (.preventDefault %) (show-context-menu-at! %)))
+             :on-context-menu (fn [click] (if (some? @selected-circle)
+                                            (do (.preventDefault click)
+                                                (show-context-menu-at! click))))
              :on-mouse-move   #(if-not (or @modal-menu-visible? @context-menu-visible?)
                                  (update-mouse-location! %))}
-       (doall (for [{:keys [index cx cy rad]} @circles]
+       (doall (for [{:keys [index cx cy rad] :as circle} @circles]
                 ^{:key index} [:circle.circle
                                (merge draw-settings
                                       {:id   index :cx cx :cy cy :r rad
-                                       :fill (if (= @index-of-selected-circle index)
+                                       :fill (if (= circle @selected-circle)
                                                selected-circle-color
-                                               "transparent")})]))]
+                                               unselected-circle-color)})]))]
       [:ul#context-menu
        {:hidden (not @context-menu-visible?)
         :style  {:left (get @context-menu-location 0)
@@ -191,7 +200,9 @@
       [:button {:on-click redo!
                 :disabled (empty? @redo-list)}
        "Redo"]
-      [:button {:on-click clear-circles!} "Clear all"]
+      [:button {:on-click clear-circles!
+                :disabled (empty? @circles)}
+       "Clear all"]
       (if @modal-menu-visible?
         [:div#modal {:on-key-down #(if (-> % .-key (= "Escape"))
                                      (reset! modal-menu-visible? false))
