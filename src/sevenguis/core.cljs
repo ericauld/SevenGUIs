@@ -2,9 +2,7 @@
   (:require
     [reagent.core :as r]
     [reagent.dom :as d]
-    [clojure.string :as str]
-    [tailrecursion.priority-map :refer [priority-map priority-map-by]]))
-
+    [clojure.string :as str]))
 
 (defn dates-out-of-order? [date-str1 date-str2]
   (let [[month1 day1 year1] (str/split date-str1 "/")
@@ -46,23 +44,24 @@
 (defn get-event-value [event]
   (.. event -target -value))
 
-(defn get-element-coords [html-element]
-  [(.-left (.getBoundingClientRect html-element))
-   (.-top (.getBoundingClientRect html-element))])
+(defn get-element-top-left-coords [html-element]
+  (let [rect (.getBoundingClientRect html-element)]
+   [(.-left rect) (.-top rect)]))
 
-(defn get-event-coords [event]
-  [(-> event .-clientX)
-   (-> event .-clientY)])
+(defn location-of [event]
+  [(.-clientX event)
+   (.-clientY event)])
 
-(defn coordinates-relative-to [html-element event]
-  (mapv - (get-event-coords event) (get-element-coords html-element)))
+(defn location-relative-to [html-element event]
+  (mapv - (location-of event) (get-element-top-left-coords html-element)))
 
 (defn sqr-distance-from [[x y] {:keys [cx cy] :as _circle}]
   (+ (-> x (- cx) (js/Math.pow 2))
      (-> y (- cy) (js/Math.pow 2))))
 
 (defn circumscribes? [point {rad :rad :as circle}]
-  (-> point (sqr-distance-from circle) (< (js/Math.pow rad 2))))
+  (let [sqr-radius (js/Math.pow rad 2)]
+    (-> point (sqr-distance-from circle) (< sqr-radius))))
 
 (defrecord Circle [index cx cy rad])
 
@@ -126,7 +125,7 @@
                             ; make sure element has already been rendered
                             (when-let [svg-element @!svg-element]
                               (let [index-of-new-circle (count @circles)
-                                    [click-x click-y] (->> click (coordinates-relative-to svg-element))
+                                    [click-x click-y] (->> click (location-relative-to svg-element))
                                     new-circle (map->Circle {:index index-of-new-circle
                                                              :cx    click-x
                                                              :cy    click-y
@@ -137,7 +136,7 @@
                               ; make sure element has already been rendered
                               (when-let [svg-element @!svg-element]
                                 (let [nearest-circumscribing-circle (->> mouse
-                                                                         (coordinates-relative-to svg-element)
+                                                                         (location-relative-to svg-element)
                                                                          (nearest-circumscribing @circles))]
                                   (if (not= nearest-circumscribing-circle @selected-circle)
                                     (select-circle! nearest-circumscribing-circle)))))
@@ -146,7 +145,7 @@
                              ; make sure element has already been rendered
                              (when-let [gui-main-element @!gui-main-element]
                                (->> click
-                                    (coordinates-relative-to gui-main-element)
+                                    (location-relative-to gui-main-element)
                                     (reset! context-menu-location))
                                (reset! context-menu-visible? true)))
      hide-menu-or-draw-circle! (fn [click]
