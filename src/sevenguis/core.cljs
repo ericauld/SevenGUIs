@@ -4,6 +4,32 @@
     [reagent.dom :as d]
     [clojure.string :as str]))
 
+(defn locate-element [html-element]
+  (let [rect (.getBoundingClientRect html-element)]
+    [(.-left rect) (.-top rect)]))
+
+(defn locate-event [event]
+  [(.-clientX event)
+   (.-clientY event)])
+
+(defn locate-relative-to [html-element event]
+  (mapv - (locate-event event) (locate-element html-element)))
+
+(defn sqr-dist-from [[x y] {:keys [cx cy] :as _circle}]
+  (+ (-> x (- cx) (js/Math.pow 2))
+     (-> y (- cy) (js/Math.pow 2))))
+
+(defn surrounds? [point {rad :rad :as circle}]
+  (let [sqr-radius (js/Math.pow rad 2)]
+    (-> point (sqr-dist-from circle) (< sqr-radius))))
+
+(defrecord Circle [index cx cy rad])
+
+(defn nearest-surrounding [circles point]
+  (let [surrounds-point? (partial surrounds? point)
+        sqr-dist-from-point (partial sqr-dist-from point)]
+    (apply min-key sqr-dist-from-point (filter surrounds-point? circles))))
+
 (defn dates-out-of-order? [date-str1 date-str2]
   (let [[month1 day1 year1] (str/split date-str1 "/")
         [month2 day2 year2] (str/split date-str2 "/")]
@@ -44,31 +70,7 @@
 (defn get-event-value [event]
   (.. event -target -value))
 
-(defn locate-element [html-element]
-  (let [rect (.getBoundingClientRect html-element)]
-    [(.-left rect) (.-top rect)]))
 
-(defn locate-event [event]
-  [(.-clientX event)
-   (.-clientY event)])
-
-(defn locate-relative-to [html-element event]
-  (mapv - (locate-event event) (locate-element html-element)))
-
-(defn sqr-dist-from [[x y] {:keys [cx cy] :as _circle}]
-  (+ (-> x (- cx) (js/Math.pow 2))
-     (-> y (- cy) (js/Math.pow 2))))
-
-(defn surrounds? [point {rad :rad :as circle}]
-  (let [sqr-radius (js/Math.pow rad 2)]
-    (-> point (sqr-dist-from circle) (< sqr-radius))))
-
-(defrecord Circle [index cx cy rad])
-
-(defn nearest-surrounding [circles point]
-  (let [surrounds-point? (partial surrounds? point)
-        sqr-dist-from-point (partial sqr-dist-from point)]
-    (apply min-key sqr-dist-from-point (filter surrounds-point? circles))))
 
 (defn circle-drawer []
   (r/with-let
@@ -79,7 +81,8 @@
      unselected-circle-color "transparent"
      circles (r/atom [])
      selected-circle (r/atom nil)
-     select-circle! #(reset! selected-circle %)
+     selected? #(= @selected-circle %)
+     select! #(reset! selected-circle %)
      unselect! #(reset! selected-circle nil)
      reset-radius! (fn [circle-atom new-radius]
                      (r/rswap! circle-atom assoc :rad new-radius)
@@ -88,30 +91,28 @@
      undo-list (r/atom [])
      redo-list (r/atom [])
      clear-redo-list! #(reset! redo-list [])
-     start-clearing-redos-on-every-edit #(add-watch circles ::redo-clearer clear-redo-list!)
-     stop-clearing-redos-on-every-edit #(remove-watch circles ::redo-clearer)
      undo-watcher! (fn [_ _ old _] (r/rswap! undo-list conj old))
-     start-tracking-undos #(add-watch circles ::undo-watcher undo-watcher!)
-     stop-tracking-undos #(remove-watch circles ::undo-watcher)
-     track-edits #(do (start-tracking-undos)
-                      (start-clearing-redos-on-every-edit))
-     stop-tracking-edits #(do (stop-tracking-undos)
-                              (stop-clearing-redos-on-every-edit))
-     reset-without-tracking! (fn [a state]
-                               (stop-tracking-edits)
-                               (reset! a state)
-                               (track-edits))
+     track-edits (fn []
+                   (add-watch circles ::undo-watcher undo-watcher!)
+                   (add-watch circles ::redo-clearer clear-redo-list!))
+     stop-tracking-edits (fn []
+                           (remove-watch circles ::undo-watcher)
+                           (remove-watch circles ::redo-clearer))
+     do-without-tracking (fn [f! a & args]
+                           (stop-tracking-edits)
+                           (apply f! a args)
+                           (track-edits))
      undo! (fn []
              (when-let [prev-state (peek @undo-list)]
                (let [current-state @circles]
-                 (reset-without-tracking! circles prev-state)
+                 (do-without-tracking reset! circles prev-state)
                  (r/rswap! undo-list pop)
                  (r/rswap! redo-list conj current-state))))
      redo! (fn []
              (when-let [redo-state (peek @redo-list)]
-               (stop-clearing-redos-on-every-edit)
+               (remove-watch circles ::redo-clearer)
                (reset! circles redo-state)
-               (start-clearing-redos-on-every-edit)
+               (add-watch circles ::redo-clearer clear-redo-list!)
                (r/rswap! redo-list pop)))
      context-menu-visible? (r/atom false)
      modal-menu-visible? (r/atom false)
@@ -135,15 +136,15 @@
                                                              :cy    click-y
                                                              :rad   default-radius})]
                                 (r/rswap! circles conj new-circle)
-                                (select-circle! (@circles index-of-new-circle)))))
+                                (select! new-circle))))
      update-mouse-location! (fn [mouse]
                               ; make sure element has already been rendered
                               (when-let [svg-element @!svg-element]
                                 (let [nearest-surrounding-circle (->> mouse
                                                                       (locate-relative-to svg-element)
                                                                       (nearest-surrounding @circles))]
-                                  (if-not (= nearest-surrounding-circle @selected-circle)
-                                    (select-circle! nearest-surrounding-circle)))))
+                                  (if-not (selected? nearest-surrounding-circle)
+                                    (select! nearest-surrounding-circle)))))
      hide-menu-or-draw-circle! (fn [click]
                                  (if @context-menu-visible?
                                    (reset! context-menu-visible? false)
