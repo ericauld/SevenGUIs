@@ -106,7 +106,7 @@
   (let [cell-name-pattern (re-pattern "[A-Z][1-9][0-9]?")]
     (not (str/blank? (re-matches cell-name-pattern s)))))
 
-(defn process-formula [s]
+(defn formula->track [s]
   (if (is-cell-name? s)
     (let [[x y] (-> s cell-label->index)]
       (r/track #(get-in @state [:value y x])))))
@@ -116,7 +116,7 @@
     (if-not (js/isNaN s)
       (js/parseFloat s)
       (if (str/starts-with? s "=")
-        (process-formula (subs s 1))
+        (formula->track (subs s 1))
         s))))
 
 (t/deftest test-cell-text->value
@@ -141,13 +141,19 @@
                  @cell-cursor))))))
 
 (defn select-cell! [[x y]]
+  (js/console.log (str "Selecting cell " x "," y))
   (r/rswap! state assoc-in [:index-of-selected-cell] [x y]))
 
 (defn cell [x y]
-  [:input.cell {:value           (str "Cell " x "," y " with value " (-> @(r/cursor state [:value y x]) cell-text->value deref-if-necessary))
+  (js/console.log (str "Cell " x "," y " rendering"))
+  [:input.cell {:value           (str "Cell " x "," y " with value "
+                                      (-> @(r/cursor state [:value y x])
+                                          cell-text->value
+                                          deref-if-necessary))
                 :on-change       (fn [])
                 :on-double-click (fn []
                                    (select-cell! [x y])
+                                   (r/rswap! state assoc :modal-input @selected-cell)
                                    (r/rswap! state assoc-in [:modal-menu-visible?] true))}])
 
 (defn cell-modal []
@@ -156,6 +162,7 @@
                                (reset! selected-cell @modal-input-cursor)
                                (reset! modal-input-cursor "")
                                (r/rswap! state assoc-in [:modal-menu-visible?] false))]
+    (js/console.log "Modal rendering")
     [:div {:on-key-down #(if (-> % .-key (= "Enter") (and (:modal-menu-visible? @state)))
                            (done-listener))
            :hidden (not @(r/cursor state [:modal-menu-visible?]))
@@ -172,11 +179,13 @@
   @(r/track #(+ (-> @state (get-in [:value 0 0]) js/parseInt) (-> @state (get-in [:value 0 1]) js/parseInt))))
 
 (defn sum-cell []
+  (js/console.log (str "Sum cell rendering"))
   [:input {:value     (str "Sum s[0,0]+s[0,1] with value " (sum-cell-track))
            :on-change (fn [])
            :style     {:width "15em"}}])
 
 (defn button [x y]
+  (js/console.log (str "Button " x "," y " rendering"))
   [:button {:on-click (fn [] (r/rswap! state update-in [:value y x] #(-> % js/parseInt inc str)))}
    (str "Increment entry " x "," y)])
 
@@ -184,11 +193,12 @@
   [:div.cell-container
    (doall (for [y (range n-rows)]
             (-> (for [x (range n-columns)]
-                  ^{:key [x y]} [cell x y])
+                  ^{:key [x y]} [cell x y])  
                 (concat [[:br]]))))])
 
 (defn cells []
   (r/with-let [n-cells 26]
+    (js/console.log "Main component rendering")
     [:div
      [cell-grid]
      [:div (doall (for [idx (range 3)]
