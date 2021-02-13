@@ -78,6 +78,7 @@
 (def n-rows 99)
 
 (def state (r/atom {:value                  (->> (range)
+                                                 (map str)
                                                  (partition n-columns)
                                                  (take n-rows)
                                                  (mapv vec))
@@ -143,7 +144,7 @@
   (r/rswap! state assoc-in [:index-of-selected-cell] [x y]))
 
 (defn cell [x y]
-  [:input.cell {:value           (str "Cell " x "," y " with value " @(r/cursor state [:value y x]))
+  [:input.cell {:value           (str "Cell " x "," y " with value " (-> @(r/cursor state [:value y x]) cell-text->value deref-if-necessary))
                 :on-change       (fn [])
                 :on-double-click (fn []
                                    (select-cell! [x y])
@@ -152,7 +153,7 @@
 (defn cell-modal []
   (r/with-let [modal-input-cursor (r/cursor state [:modal-input])
                done-listener (fn [_e]
-                               (reset! selected-cell (deref-if-necessary (cell-text->value @modal-input-cursor)))
+                               (reset! selected-cell @modal-input-cursor)
                                (reset! modal-input-cursor "")
                                (r/rswap! state assoc-in [:modal-menu-visible?] false))]
     [:div {:on-key-down #(if (-> % .-key (= "Enter") (and (:modal-menu-visible? @state)))
@@ -168,7 +169,7 @@
       [:button {:on-click done-listener} "Done"]]]))
 
 (defn sum-cell-track []
-  @(r/track #(+ (-> @state :value (get 0) (get 0)) (-> @state :value (get 0) (get 1)))))
+  @(r/track #(+ (-> @state (get-in [:value 0 0]) js/parseInt) (-> @state (get-in [:value 0 1]) js/parseInt))))
 
 (defn sum-cell []
   [:input {:value     (str "Sum s[0,0]+s[0,1] with value " (sum-cell-track))
@@ -176,7 +177,7 @@
            :style     {:width "15em"}}])
 
 (defn button [x y]
-  [:button {:on-click (fn [] (r/rswap! state update-in [:value y x] inc))}
+  [:button {:on-click (fn [] (r/rswap! state update-in [:value y x] #(-> % js/parseInt inc str)))}
    (str "Increment entry " x "," y)])
 
 (defn cell-grid []
