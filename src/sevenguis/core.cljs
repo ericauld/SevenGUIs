@@ -2,7 +2,8 @@
   (:require
     [reagent.core :as r]
     [reagent.dom :as d]
-    [clojure.string :as str]))
+    [clojure.string :as str]
+    [cljs.test :as t]))
 
 (defn locate-element [html-element]
   (let [rect (.getBoundingClientRect html-element)]
@@ -70,7 +71,129 @@
 (defn get-event-value [event]
   (.. event -target -value))
 
+(defn deref-if-necessary [v]
+  (if (satisfies? IDeref v) @v v))
 
+(def n-columns 26)
+(def n-rows 99)
+
+(def state (r/atom {:value                  (->> (range)
+                                                 (partition n-columns)
+                                                 (take n-rows)
+                                                 (mapv vec))
+                    :modal-menu-visible?    false
+                    :modal-input            ""
+                    :index-of-selected-cell nil}))
+
+(def selected-cell
+  (let [get-set (fn ([_k] (let [[x y] (:index-of-selected-cell @state)]
+                            (get-in @state [:value y x])))
+                  ([_k v] (let [[x y] (:index-of-selected-cell @state)]
+                            (r/rswap! state assoc-in [:value y x] v))))]
+    (r/cursor get-set nil)))
+
+(defn swap-cell! [[x y] f]
+  (r/rswap! state update-in [:value y x] f))
+
+(defn cell-label->index [cell-label]
+  (let [column-letter (get cell-label 0)
+        column-number (-> column-letter .charCodeAt (- (.charCodeAt "A")))
+        row-number (-> cell-label (subs 1) js/parseInt (- 1))]
+    [column-number row-number]))
+
+(defn is-cell-name? [s]
+  (let [cell-name-pattern (re-pattern "[A-Z][1-9][0-9]?")]
+    (not (str/blank? (re-matches cell-name-pattern s)))))
+
+(defn process-formula [s]
+  (if (is-cell-name? s)
+    (let [[x y] (-> s cell-label->index)]
+      (r/track #(get-in @state [:value y x])))))
+
+(defn cell-text->value [s]
+  (if-not (str/blank? s)
+    (if-not (js/isNaN s)
+      (js/parseFloat s)
+      (if (str/starts-with? s "=")
+        (process-formula (subs s 1))
+        s))))
+
+(t/deftest test-cell-text->value
+  (t/testing "Text input"
+    (t/is (= nil (cell-text->value "")))
+    (t/is (= nil (cell-text->value " ")))
+    (let [input "Example input"]
+      (t/is (= input (cell-text->value input)))))
+  (t/testing "Numerical input"
+    (doseq [input [0 2 -3 3.14]]
+      (t/is (= input (cell-text->value (str input))))))
+  (t/testing "Track another cell's value"
+    (doseq [cell-label ["A1" "B2" "Z2"]]
+      (let [[x y] (cell-label->index cell-label)
+            track-cell-formula (str "=" cell-label)
+            cell-cursor (r/cursor state [:value y x])
+            cell-value (cell-text->value track-cell-formula)]
+        (t/is (= @cell-value
+                 @cell-cursor))
+        (swap-cell! [x y] inc)
+        (t/is (= @cell-value
+                 @cell-cursor))))))
+
+(defn select-cell! [[x y]]
+  (r/rswap! state assoc-in [:index-of-selected-cell] [x y]))
+
+(defn cell [x y]
+  [:input.cell {:value           (str "Cell " x "," y " with value " @(r/cursor state [:value y x]))
+                :on-change       (fn [])
+                :on-double-click (fn []
+                                   (select-cell! [x y])
+                                   (r/rswap! state assoc-in [:modal-menu-visible?] true))}])
+
+(defn cell-modal []
+  (r/with-let [modal-input-cursor (r/cursor state [:modal-input])
+               done-listener (fn [_e]
+                               (reset! selected-cell (deref-if-necessary (cell-text->value @modal-input-cursor)))
+                               (reset! modal-input-cursor "")
+                               (r/rswap! state assoc-in [:modal-menu-visible?] false))]
+    [:div {:on-key-down #(if (-> % .-key (= "Enter") (and (:modal-menu-visible? @state)))
+                           (done-listener))
+           :hidden (not @(r/cursor state [:modal-menu-visible?]))
+           :style  {:position "fixed"
+                    :top      "150px"
+                    :left     "150px"}}
+     [:input
+      {:value     @modal-input-cursor
+       :on-change #(reset! modal-input-cursor (get-event-value %))}]
+     [:div
+      [:button {:on-click done-listener} "Done"]]]))
+
+(defn sum-cell-track []
+  @(r/track #(+ (-> @state :value (get 0) (get 0)) (-> @state :value (get 0) (get 1)))))
+
+(defn sum-cell []
+  [:input {:value     (str "Sum s[0,0]+s[0,1] with value " (sum-cell-track))
+           :on-change (fn [])
+           :style     {:width "15em"}}])
+
+(defn button [x y]
+  [:button {:on-click (fn [] (r/rswap! state update-in [:value y x] inc))}
+   (str "Increment entry " x "," y)])
+
+(defn cell-grid []
+  [:div.cell-container
+   (doall (for [y (range n-rows)]
+            (-> (for [x (range n-columns)]
+                  ^{:key [x y]} [cell x y])
+                (concat [[:br]]))))])
+
+(defn cells []
+  (r/with-let [n-cells 26]
+    [:div
+     [cell-grid]
+     [:div (doall (for [idx (range 3)]
+                    ^{:key idx} [button idx 0]))]
+     [sum-cell]
+     [cell-modal]]))
 
 (defn circle-drawer []
   (r/with-let
@@ -278,7 +401,7 @@
                ticking-process (r/atom nil)
                stop-clock! (fn [] (reset! clock-is-ticking false)
                              (js/clearInterval @ticking-process))
-               tick-if-time-remains! #((if (time-is-up) (stop-clock!) (tick!)))
+               tick-if-time-remains! #(if (time-is-up) (stop-clock!) (tick!))
                start-clock! (fn [] (reset! clock-is-ticking true)
                               (reset! ticking-process (js/setInterval tick-if-time-remains!
                                                                       milliseconds-between-ticks)))]
@@ -412,7 +535,7 @@
     [timer]
     [crud]
     [circle-drawer]
-    [:div.gui "Seven"]]])
+    [cells]]])
 
 (defn mount-root []
   (d/render [home-page] (.getElementById js/document "app")))

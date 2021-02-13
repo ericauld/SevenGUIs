@@ -9,6 +9,20 @@ body {
     line-height: 1.5em;
 }
 
+.cell-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    width: 500px;
+    height: 375px;
+    white-space: nowrap;
+}
+
+br {
+    display: block;
+    content: "";
+    margin-top: -7px;
+}
+
 .gui-display {
     color: purple;
     font-weight: bold;
