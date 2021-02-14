@@ -74,114 +74,83 @@
 (defn deref-if-necessary [v]
   (if (satisfies? IDeref v) @v v))
 
-(def n-columns 26)
-(def n-rows 99)
+(def n-columns 6)
+(def n-rows 6)
 
-(def state (r/atom {:value                (->> (range)
-                                               (map str)
-                                               (partition n-columns)
-                                               (take n-rows)
-                                               (mapv vec))
+(def state (r/atom {:value               (->> (repeat nil)
+                                              (partition n-columns)
+                                              (take n-rows)
+                                              (mapv vec))
                     :modal-menu-visible? false
                     :modal-input         ""
-                    :selected-cell-label       nil}))
+                    :selected-cell       nil}))
 
-(defn is-cell-name? [s]
+(defn valid-cell-name? [s]
   (let [cell-name-pattern (re-pattern "[A-Z][1-9][0-9]?")]
     (not (str/blank? (re-matches cell-name-pattern s)))))
 
-(defn cell-label->indices [cell-label]
-  {:pre [(is-cell-name? cell-label)]}
-  (let [column-letter (get cell-label 0)
+(defn cell-name->indices [cell]
+  {:pre [(valid-cell-name? cell)]}
+  (let [column-letter (get cell 0)
         column-number (-> column-letter .charCodeAt (- (.charCodeAt "A")))
-        row-number (-> cell-label (subs 1) js/parseInt (- 1))]
+        row-number (-> cell (subs 1) js/parseInt (- 1))]
     [column-number row-number]))
 
-(defn reset-cell! [cell-label v]
-  (let [[x y] (cell-label->indices cell-label)]
+(defn reset-cell! [cell v]
+  (let [[x y] (cell-name->indices cell)]
     (r/rswap! state assoc-in [:value y x] v)))
 
-(defn swap-cell! [cell-label f]
-  (let [[x y] (cell-label->indices cell-label)]
+(defn swap-cell! [cell f]
+  (let [[x y] (cell-name->indices cell)]
     (r/rswap! state update-in [:value y x] #(-> % js/parseFloat f str))))
 
-(defn increment-cell! [cell-label]
-  (swap-cell! cell-label #(-> % js/parseFloat inc str)))
+(defn get-user-input [cell]
+  (if cell
+    (let [[x y] (cell-name->indices cell)]
+      @(r/cursor state [:value y x]))))
 
-(defn get-cell-value [cell-label]
-  (if cell-label
-    (let [[x y] (cell-label->indices cell-label)]
-      (get-in @state [:value y x]))))
+(defn increment-cell! [cell]
+  {:pre [(-> cell get-user-input js/isNaN not)]}
+  (swap-cell! cell #(-> % js/parseFloat inc str)))
 
 (def selected-cell
-  (let [get-set (fn ([_k] (let [selected-cell-label (:selected-cell-label @state)]
-                            (get-cell-value selected-cell-label)))
-                  ([_k v] (let [selected-cell-label (:selected-cell-label @state)]
-                            (reset-cell! selected-cell-label v))))]
+  (let [get-set (fn ([_k] (let [selected-cell (:selected-cell @state)]
+                            (get-user-input selected-cell)))
+                  ([_k v] (let [selected-cell (:selected-cell @state)]
+                            (reset-cell! selected-cell v))))]
     (r/cursor get-set nil)))
 
-(defn get-cell-cursor [cell-label]
-  (let [[x y] (cell-label->indices cell-label)]
+(defn get-cell-cursor [cell]
+  (let [[x y] (cell-name->indices cell)]
     (r/cursor state [:value y x])))
 
+(declare displayed-value)
+(declare parse-user-input)
+
 (defn parse-formula [s]
-  (if (is-cell-name? s)
-    (r/track #(get-cell-value s))
+  (js/console.log (str "Parse formula was called on " s))
+  (if (valid-cell-name? s)
+    @(displayed-value s)
     "Invalid formula"))
 
+(defn is-num [s]
+  (not (js/isNaN s)))
+
 (defn parse-user-input [s]
+  (js/console.log (str "Parse user input called on " s))    ;todo remove
   (if-not (str/blank? s)
-    (if-not (js/isNaN s)
+    (if (is-num s)
       (js/parseFloat s)
       (if (str/starts-with? s "=")
         (parse-formula (subs s 1))
         s))))
 
-;(t/deftest test-parse-user-input
-;  (t/testing "Text input"
-;    (t/is (= (parse-user-input "") nil))
-;    (t/is (= (parse-user-input " ") nil))
-;    (let [input "Example input"]
-;      (t/is (= input (parse-user-input input)))))
-;
-;  (t/testing "Numerical input"
-;    (doseq [input [0 2 -3 3.14]]
-;      (t/is (= input (parse-user-input (str input))))))
-;
-;  (t/testing "Track another cell's value"
-;    (doseq [cell-label ["A1" "B2" "Z2"]]
-;      (let [[x y] (cell-label->indices cell-label)
-;            track-cell-formula (str "=" cell-label)
-;            cell-cursor (r/cursor state [:value y x])
-;            cell-value (parse-user-input track-cell-formula)]
-;        (t/is (= @cell-value
-;                 @cell-cursor))
-;        (swap-cell! [x y] inc)
-;        (t/is (= @cell-value
-;                 @cell-cursor))))))
+(defn select-cell! [cell]
+  (r/rswap! state assoc-in [:selected-cell] cell))
 
-;(t/deftest test-parse-user-input
-;  (t/testing "Text input"
-;    (t/is (= (parse-user-input "") nil))
-;    (t/is (= (parse-user-input " ") nil))
-;    (let [input "Example input"]
-;      (t/is (= input (parse-user-input input)))))
-;
-;  (t/testing "Numerical input"
-;    (doseq [input [0 2 -3 3.14]]
-;      (t/is (= input (parse-user-input (str input))))))
-;
-;  (t/testing "Track another cell's value"
-;    (doseq [cell-label ["A1" "B2" "Z2"]]
-;      (let [[x y] (cell-label->indices cell-label)
-;            track-cell-formula (str "=" cell-label)
-;            cell-cursor (r/cursor state [:value y x])
-;            cell-value (parse-user-input track-cell-formula)]
-;        (t/is (= @cell-value
-;                 @cell-cursor))
-;        (swap-cell! cell-label inc)
-;        (t/is (= @cell-value
-;                 @cell-cursor))))))
+(defn displayed-value [cell]
+  (js/console.log (str "displayed value called on " cell))
+  (r/track #(-> cell get-user-input parse-user-input)))
 
 (t/deftest test-parse-user-input
   (t/testing "Text input"
@@ -194,81 +163,74 @@
     (doseq [input [0 2 -3 3.14]]
       (t/is (= input (parse-user-input (str input))))))
 
-  (t/testing "Track another cell's value"
-    (doseq [tracked-cell-label ["A1" "B2" "Z2"]]
-      (let [user-input (str "=" tracked-cell-label)
-            tracked-cell-cursor (get-cell-cursor tracked-cell-label)
+  (t/testing "Track another cell's value" ;todo might need to provide values first so tests aren't passing spuriously
+    (doseq [tracked-cell ["A1" "B2"]]
+      (let [user-input (str "=" tracked-cell)
+            tracked-cell-cursor (get-cell-cursor tracked-cell)
             tracking-cell-value (parse-user-input user-input)]
         (t/is (= @tracking-cell-value
                  @tracked-cell-cursor))
-        (increment-cell! tracked-cell-label)
+        (increment-cell! tracked-cell)
         (t/is (= @tracking-cell-value
                  @tracked-cell-cursor))))))
 
-(defn select-cell! [cell-label]
-  (js/console.log (str "Selecting cell " cell-label))
-  (r/rswap! state assoc-in [:selected-cell-label] cell-label))
+(defn cell [cell-name]
+  (js/console.log (str cell-name " rendering")) ;todo remove
+  [:input.cell
+   {:value           (str cell-name " value " @(displayed-value cell-name))
+    :on-change       (fn [])
+    :on-double-click (fn []
+                       (select-cell! cell-name)
+                       (r/rswap! state assoc :modal-input @selected-cell)
+                       (r/rswap! state assoc-in [:modal-menu-visible?] true))}])
 
-(defn cell [cell-label]
-;  (js/console.log (str "Cell " cell-label " rendering"))
-  [:input.cell {:value           (str "Cell " cell-label " with value "
-                                      (-> @(get-cell-cursor cell-label)
-                                          parse-user-input
-                                          deref-if-necessary))
-                :on-change       (fn [])
-                :on-double-click (fn []
-                                   (select-cell! cell-label)
-                                   (r/rswap! state assoc :modal-input @selected-cell)
-                                   (r/rswap! state assoc-in [:modal-menu-visible?] true))}])
-
-(defn cell-modal []
-  (r/with-let [modal-input-cursor (r/cursor state [:modal-input])
-               done-listener (fn [_e]
-                               (reset! selected-cell @modal-input-cursor)
-                               (reset! modal-input-cursor "")
-                               (r/rswap! state assoc-in [:modal-menu-visible?] false))]
-    (js/console.log "Modal 2 rendering")
-    [:div {:on-key-down #(if (-> % .-key (= "Enter") (and (:modal-menu-visible? @state)))
-                           (done-listener))
-           :hidden      (not @(r/cursor state [:modal-menu-visible?]))
-           :style       {:position "fixed"
-                         :top      "150px"
-                         :left     "150px"}}
+(defn modal-cell-editor []
+  (r/with-let [user-input-cursor (r/cursor state [:modal-input])
+               done-editing-listener (fn [_e]
+                                       (reset! selected-cell @user-input-cursor)
+                                       (reset! user-input-cursor "")
+                                       (r/rswap! state assoc-in [:modal-menu-visible?] false)
+                                       (r/rswap! state assoc-in [:selected-cell] nil))
+               user-presses-enter (fn [e] (-> e .-key (= "Enter")))]
+    [:div.cell-modal {:on-key-down #(if (and (user-presses-enter %) (:modal-menu-visible? @state))
+                                      (done-editing-listener))
+                      :hidden      (not @(r/cursor state [:modal-menu-visible?]))}
      [:input
-      {:value     @modal-input-cursor
-       :on-change #(reset! modal-input-cursor (get-event-value %))}]
+      {:value     @user-input-cursor
+       :on-change #(reset! user-input-cursor (get-event-value %))}]
      [:div
-      [:button {:on-click done-listener} "Done"]]]))
-
-(defn sum-cell-track []
-  @(r/track #(+ (-> @state (get-in [:value 0 0]) js/parseInt) (-> @state (get-in [:value 0 1]) js/parseInt))))
+      [:button {:on-click done-editing-listener} "Done"]]]))
 
 (defn sum-cell []
-  (js/console.log (str "Sum cell rendering"))
-  [:input {:value     (str "Sum s[0,0]+s[0,1] with value " (sum-cell-track))
+  [:input {:value     (str "A1 + B1 = "
+                           @(r/track #(+ @(displayed-value "A1")) @(displayed-value "B1")))
            :on-change (fn [])
            :style     {:width "15em"}}])
 
-(defn button [cell-label]
-  (js/console.log (str "Button for " cell-label " rendering"))
-  [:button {:on-click #(increment-cell! cell-label)}
-   (str "Increment cell " cell-label)])
+(defn increment-button [cell]
+  [:button {:on-click #(increment-cell! cell)}
+   (str "Increment " cell)])
 
 (defn cell-grid []
   [:div.cell-container
    (doall (for [y (map str (range 1 (+ 1 n-rows)))]
-            (-> (for [x "ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
-                  ^{:key (str x y)} [cell (str x y)])
+            (-> (for [x (subs "ABCDEFGHIJKLMNOPQRSTUVWXYZ" 0 n-columns)]
+                  ^{:key (str x y)} [cell (str x y)])       ;todo fix key
                 (concat [[:br]]))))])
 
 (defn cells []
-  (js/console.log "Main component rendering")
   [:div
    [cell-grid]
-   [:div (doall (for [column "ABC" :let [cell-label (str column "1")]]
-                  ^{:key cell-label} [button cell-label]))]
+   [:div (doall (-> (for [column "ABC" :let [cell-label (str column "1")]]
+                      ^{:key cell-label} [increment-button cell-label])
+                    (concat [[:button {:on-click #(r/rswap! state assoc :value (->> (repeat nil)
+                                                                                    (partition n-columns)
+                                                                                    (take n-rows)
+                                                                                    (mapv vec)))}
+                              "Clear all"]])))]
    [sum-cell]
-   [cell-modal]])
+   [:text (str "Selected cell: " @(r/cursor state [:selected-cell]))]
+   [modal-cell-editor]])
 
 (defn circle-drawer []
   (r/with-let
