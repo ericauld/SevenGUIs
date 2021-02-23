@@ -330,10 +330,10 @@
    [:div (doall (-> (for [column "ABC" :let [cell-label (str column "1")]]
                       ^{:key cell-label} [increment-button cell-label])
                     (concat [^{:key "clear"}
-                             [:button {:on-click #(r/rswap! state assoc :value (->> (repeat "")
-                                                                                    (partition n-columns)
-                                                                                    (take n-rows)
-                                                                                    (mapv vec)))}
+                             [:button {:on-click #(r/rswap! state assoc :user-input (->> (repeat "")
+                                                                                         (partition n-columns)
+                                                                                         (take n-rows)
+                                                                                         (mapv vec)))}
                               "Clear all"]])))]
    [sum-of-A1-B1-demo]
    [:div (str "Selected cell: " @(r/cursor state [:selected-cell]))]
