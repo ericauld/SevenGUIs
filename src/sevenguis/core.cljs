@@ -13,17 +13,18 @@
     [sevenguis.counter :as counter]))
 
 (defn home-page []
-  [:div {:style {:text-align "center"}}
-   [:div.title {:style {:justify-content "space-around"}}
-    [:h2 "Seven GUIs in Reagent"]]
-   [:div.wrapper
-    [counter/counter]
-    [temperature-converter/temp-converter]
-    [flight-booker/flight-booker]
-    [timer/timer]
-    [crud/crud]
-    [circle-drawer/circle-drawer]
-    [cells/cells]]])
+  [:div
+   [:h1 "Seven GUIs in Reagent"]
+   [:ol
+    [:li
+     [counter/counter]]
+    [:li
+     [temperature-converter/temperature-converter]]]])
+;    [flight-booker/flight-booker]
+;    [timer/timer]
+;    [crud/crud]
+;    [circle-drawer/circle-drawer]
+;    [cells/cells]]])
 
 (defn mount-root []
   (d/render [home-page] (.getElementById js/document "app")))

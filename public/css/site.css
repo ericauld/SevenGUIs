@@ -1,159 +1,95 @@
 body {
-    font-family: 'Helvetica Neue', Verdana, Helvetica, Arial, sans-serif;
-    max-width: 600px;
-    margin: 0 auto;
-    padding-top: 72px;
-    -webkit-font-smoothing: antialiased;
-    font-size: 1.125em;
-    color: #333;
-    line-height: 1.5em;
+    font-family: 'Roboto', sans-serif;
+    /*max-width: 600px;*/
+    /*margin: 0 auto;*/
+    /*padding-top: 72px;*/
+    /*-webkit-font-smoothing: antialiased;*/
+    font-size: larger;
+    font-weight: lighter;
+    /*color: #333;*/
+    /*line-height: 1.5em;*/
 }
 
-.cell-modal {
-    position: fixed;
-    top: 150px;
-    left: 150px;
-}
-
-.cell-container {
-    overflow-x: auto;
-    overflow-y: auto;
-    width: 500px;
-    height: 375px;
-    white-space: nowrap;
-}
-
-br {
-    display: block;
-    content: "";
-    margin-top: -7px;
-}
-
-.gui-display {
-    color: purple;
-    font-weight: bold;
-}
-
-svg {
-    border: #a59898 solid 1px;
-    border-radius: 5px;
-    background-color: #f8f8f8;
-}
-
-circle:focus {
-    fill: blue;
-}
-
-#modal {
-    top: 150px;
-    left: 150px;
-    position: absolute;
-    border: #a59898 solid 1px;
-    border-radius: 5px;
-    padding: 0px 4px;
-    opacity: 1;
-    background-color: #f8f8f8;
-}
-
-#circle-drawer-main {
+.temperature-input {
+    display: inline;
     position: relative;
-    display: block;
 }
 
-#context-menu  {
-    margin: 0;
-    background-color: #dedede;
-    padding: 0;
-    list-style-type: none;
-    padding-inline-start: 0;
+.temperature-units {
     position: absolute;
-    font-family: -apple-system;
-    font-size: large;
-}
-
-#context-menu-item {
-    padding: 0px 9px;
-    margin: 0;
-    font-size: .8em;
-}
-
-#context-menu-item:hover {
-    background-color: #40aee0;
-    cursor: default;
-}
-
-button {
-    margin: 10px;
-    background-color: #bebebe;
-    border-radius: 4px;
-    border-width: 0px;
-}
-
-.gui-main > * {
-    margin: 5px;
-}
-
-.wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-around;
-}
-
-input::-webkit-input-placeholder {
-    color:gray;
-    font-weight: normal;
-    text-align: left;
-}
-
-.gui {
-    background-color: #efecec;
-    margin: 10px 2px;
-    border: #a9a9a9 solid 1px;
-}
-
-.gui-title {
-    font-weight: bold;
-}
-
-.gui-main {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-around;
-}
-
-.gui-title {
-    text-align: center;
-}
-
-.wrapper > div {
-    padding: 1em;
-    border-radius: 5px;
-    border: gainsboro solid 1px;
-}
-
-h1, h2, h3 {
-    color: #000;
+    left: 0;
 }
 
 h1 {
-    font-size: 2.5em
+    margin-left: 10px;
 }
 
-h2 {
-    font-size: 2em
+.counter {
+    margin-bottom: 1.5em;
 }
 
-h3 {
-    font-size: 1.5em
+.counter-text {
+    /*border: thin solid;*/
+    display: inline;
+    margin: 10px 10px 10px 10px;
 }
 
-a {
+.temperature-converter {
+    margin: 10px;
+}
+
+.temperature-input {
+
+}
+
+input {
+    font-size: large;
+    width: 8em;
+    border-bottom: 1px solid;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    margin: 0px;
+    margin-right: 25px;
+}
+
+input:focus {
+    outline: none;
+}
+
+.counter-line {
+    margin: 5px auto;
+    text-align: center;
+}
+
+button {
+    display: inline;
+    border: none;
+    padding: .5rem 1rem;
+    margin: 0;
     text-decoration: none;
-    color: #09f;
+    background: #0069ed;
+    color: #ffffff;
+    font-family: sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    /*text-align: center;*/
+    transition: background 250ms ease-in-out,
+    transform 150ms ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
 }
 
-a:hover {
-    text-decoration: underline;
+button:hover,
+button:focus {
+    background: #0053ba;
+}
+
+button:focus {
+    outline: 1px solid #fff;
+    outline-offset: -4px;
+}
+
+button:active {
+    transform: scale(0.99);
 }
