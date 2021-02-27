@@ -4,80 +4,103 @@
     [sevenguis.util :as util]
     [clojure.string :as str]))
 
+(def state (r/atom {:flight-type            "One-way"
+                    :departing-flight-input nil
+                    :return-flight-input    nil}))
 
-(defn dates-out-of-order? [date-str1 date-str2]
-  (let [[month1 day1 year1] (str/split date-str1 "/")
-        [month2 day2 year2] (str/split date-str2 "/")]
-    (prn (str year1 month1 day1) (str year2 month2 day2))
-    (> (compare (str year1 month1 day1) (str year2 month2 day2)) 0)))
+(defrecord Date [month day year])
 
-(defn not-a-calendar-date? [date-str]
-  (let [[month-str day-str year-str] (str/split date-str "/")
-        [month day year] (mapv js/parseInt [month-str day-str year-str])
-        date (js/Date. year (- month 1) day)
-        parsed-month (-> date .getMonth (+ 1))
-        parsed-day (.getDate date)
-        parsed-year (.getFullYear date)]
-    (not (and (= month parsed-month) (= day parsed-day) (= year parsed-year)))))
+(def date-separator \/)
 
-(defn not-in-date-format? [date-str]
-  (not (re-matches #"^\d{2}/\d{2}/\d{4}$" date-str)))
+(def today
+  (let [now (js/Date.)
+        month (-> now .getMonth (+ 1))
+        day (.getDate now)
+        year (.getFullYear now)]
+    (->Date month day year)))
 
-(defn invalid-date-input? [date-str]
-  (if (str/blank? date-str)
-    false
-    (or (not-in-date-format? date-str) (not-a-calendar-date? date-str))))
+(def date-pattern (re-pattern (str "^\\d{2}"
+                                   date-separator
+                                   "\\d{2}"
+                                   date-separator
+                                   "\\d{4}$")))
+
+(defn in-date-format? [date-str]
+  (and date-str
+       (re-matches date-pattern date-str)))
+
+(defn actual-date? [{:keys [month day year]}]
+  (let [date-candidate (js/Date. year (- month 1) day)
+        parsed-month (-> date-candidate .getMonth (+ 1))
+        parsed-day (.getDate date-candidate)
+        parsed-year (.getFullYear date-candidate)]
+    (= [month day year] [parsed-month parsed-day parsed-year])))
+
+(defn str->Date [date-str]
+  (when (in-date-format? date-str)
+    (let [[month day year] (mapv js/parseInt (str/split date-str date-separator))
+          date-candidate (->Date month day year)]
+      (when (actual-date? date-candidate) date-candidate))))
+
+(defn dates-in-order? [date1 date2]
+  (<= (compare [(:year date1) (:month date1) (:day date1)]
+               [(:year date2) (:month date2) (:day date2)])
+      0))
 
 (defn flight-booker []
-  (r/with-let [flight-type (r/atom "oneway")
-               departure-date (r/atom nil)
-               departure-date-is-invalid (r/atom true)
-               return-date (r/atom nil)
-               return-date-is-invalid (r/atom true)
-               flight-is-booked (r/atom false)]
-              [:div#flight-booker.gui
-               [:div.gui-title "Flight Booker"]
-               [:div.gui-main
-                [:select {:value     @flight-type
-                          :style     {:display "block"}
-                          :disabled  @flight-is-booked
-                          :on-change (fn [event]
-                                       (let [selection (util/get-event-value event)]
-                                         (reset! flight-type selection)))}
-                 [:option {:value "roundtrip"} "Round-trip"]
-                 [:option {:value "oneway"} "One-way"]]
-                [:div#departure
-                 [:div "Departure"]
-                 [:input#departure-input.gui-display
-                  {:value       @departure-date
-                   :disabled    @flight-is-booked
-                   :style       {:width            "6em"
-                                 :background-color (if (and @departure-date-is-invalid
-                                                            (not (str/blank? @departure-date))) "#f1bebe")}
-                   :placeholder "mm/dd/yyyy"
-                   :on-change   (fn [event] (let [date-entered (util/get-event-value event)]
-                                              (reset! departure-date-is-invalid (invalid-date-input? date-entered))
-                                              (reset! departure-date date-entered)))}]]
-                [:div#return {:hidden (if (= @flight-type "oneway") true)}
-                 [:div "Return"]
-                 [:input#return-input.gui-display
-                  {:value       @return-date
-                   :disabled    @flight-is-booked
-                   :style       {:width            "6em"
-                                 :background-color (if (and @return-date-is-invalid
-                                                            (not (str/blank? @return-date))) "#f1bebe")}
-                   :placeholder "mm/dd/yyyy"
-                   :on-change   (fn [event] (let [date-entered (util/get-event-value event)]
-                                              (reset! return-date-is-invalid (invalid-date-input? date-entered))
-                                              (reset! return-date date-entered)))}]]
-                [:button {:on-click #(reset! flight-is-booked true)
-                          :disabled (or @flight-is-booked
-                                        @departure-date-is-invalid
-                                        (and (= @flight-type "roundtrip") @return-date-is-invalid)
-                                        (dates-out-of-order? @departure-date @return-date))}
-                 "Book!"]]
-               [:div#success-message {:hidden (not @flight-is-booked)}
-                [:div "Success! Your trip departs on " @departure-date
-                 (if (= @flight-type "roundtrip") (str " and returns " @return-date)) "."]
-                [:button {:on-click (fn [_event] (do (reset! departure-date "") (reset! flight-is-booked false) (reset! return-date "")))}
-                 "Book again!"]]]))
+  (r/with-let
+    [flight-type (r/cursor state [:flight-type])
+     one-way-flight? #(= @flight-type "One-way")
+     departing-flight-input (r/cursor state [:departing-flight-input])
+     return-flight-input (r/cursor state [:return-flight-input])
+     good-user-input? #(if (one-way-flight?)
+                         (let [date (str->Date @departing-flight-input)]
+                           (and date
+                                (dates-in-order? today date)))
+                         (let [date1 (str->Date @departing-flight-input)
+                               date2 (str->Date @return-flight-input)]
+                           (and date1
+                                date2
+                                (dates-in-order? today date1)
+                                (dates-in-order? date1 date2))))
+     !modal (atom nil)
+     set-modal-ref #(reset! !modal %)
+     close-modal (fn [_e] (when-let [modal @!modal]
+                            (.close modal)))
+     show-modal (fn [_e] (when-let [modal @!modal]
+                           (.showModal modal)))]
+    [:div.gui.flight-booker
+     [:select {:on-change    #(->> % util/get-event-value (reset! flight-type))
+               :defaultValue "One-way"}
+      [:option {:value "One-way"} "One-way"]
+      [:option {:value "Round-trip"} "Round-trip"]]
+     [:input {:className   (when-not (or (empty? @departing-flight-input)
+                                         (str->Date @departing-flight-input))
+                             "bad-date")
+              :placeholder (str "mm" date-separator "dd" date-separator "yyyy")
+              :value       @departing-flight-input
+              :on-change   #(->> % (util/get-event-value) (reset! departing-flight-input))}]
+     [:input {:className   (when-not (or
+                                       (one-way-flight?)
+                                       (empty? @return-flight-input)
+                                       (str->Date @return-flight-input))
+                             "bad-date")
+              :placeholder (when-not (one-way-flight?) (str "mm" date-separator "dd" date-separator "yyyy"))
+              :value       (when-not (one-way-flight?) @return-flight-input)
+              :on-change   #(->> % (util/get-event-value) (reset! return-flight-input))
+              :disabled    (one-way-flight?)}]
+     [:button#book-button {:disabled (not (good-user-input?))
+                           :on-click show-modal}
+      "Book!"]
+     [util/modal {:text "You're all set!"
+                  :set-ref-func set-modal-ref
+                  :listener #()
+                  :close-modal close-modal
+                  :button-text "OK"}]]))
+
+
+
+
+
+
+

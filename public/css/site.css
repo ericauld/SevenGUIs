@@ -1,87 +1,188 @@
 body {
     font-family: 'Roboto', sans-serif;
-    /*max-width: 600px;*/
+    max-width: 600px;
     /*margin: 0 auto;*/
     /*padding-top: 72px;*/
     /*-webkit-font-smoothing: antialiased;*/
     font-size: larger;
     font-weight: lighter;
-    /*color: #333;*/
+    color: #333;
     /*line-height: 1.5em;*/
 }
 
-.temperature-input {
+button:not(#book-button) {
+    border-radius: 2px;
+}
+
+.bubble {
+    margin: 1.3rem 0 0 0;
+    background: #0069ed;
+    color: white;
+    padding: 4px 6px;
+    position: absolute;
+    border-radius: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: small;
+}
+.bubble::after {
+    content: "";
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: blue;
+    top: -1px;
+    left: 50%;
+}
+
+.range-wrap {
+    position: relative;
+}
+
+#duration {
+    display: inline-block;
+}
+
+.gui-line {
+    margin: 8px 0;
+}
+
+.gui-line > span {
+    margin: 0 5px 0 0;
+}
+
+.timer-progress {
+    display: inline-block;
+    width: 50%;
+}
+
+.timer {
+    width: 300px;
+    /*background: gray;*/
+}
+
+.bad-date {
+    background: rgba(193, 66, 66, 0.19);
+}
+
+.flight-booker {
+    width: 160px;
+}
+
+.flight-booker input,
+.flight-booker select,
+.flight-booker option,
+.flight-booker button{
+    margin: 0 auto;
+    font-size: medium;
+}
+
+#book-button {
+    width: 100%;
+}
+
+.flight-booker input {
+    width: 88%;
+}
+
+.flight-booker input,
+.flight-booker select,
+.flight-booker option {
+    padding: 6px 0 6px 1em;
+}
+
+.flight-booker select {
+    width: 100%;
+}
+
+.button-group {
+    list-style-type: none;
+}
+
+dialog {
+    text-align: center;
+}
+
+.dialog-close-wrapper {
+    position: absolute;
+    width: 10px;
+    top: 0;
+    right: 20px;
+}
+
+.dialog-close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.dialog-close:hover,
+.dialog-close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.input-with-suffix-wrapper {
     display: inline;
     position: relative;
 }
 
-.temperature-units {
+.suffix-element {
     position: absolute;
     left: 0;
 }
 
 h1 {
-    margin-left: 10px;
+    margin-left: .5em;
 }
 
-.counter {
+.gui {
+    margin-left: .5em;
     margin-bottom: 1.5em;
+    position: relative;
 }
 
-.counter-text {
-    /*border: thin solid;*/
-    display: inline;
-    margin: 10px 10px 10px 10px;
-}
-
-.temperature-converter {
-    margin: 10px;
-}
-
-.temperature-input {
-
-}
-
-input {
-    font-size: large;
-    width: 8em;
+.input-with-suffix {
+    font-size: inherit;
+    width: 5em;
     border-bottom: 1px solid;
     border-top: 0;
     border-left: 0;
     border-right: 0;
-    margin: 0px;
     margin-right: 25px;
 }
 
-input:focus {
+.input-with-suffix:focus {
     outline: none;
 }
 
-.counter-line {
-    margin: 5px auto;
-    text-align: center;
-}
-
 button {
-    display: inline;
     border: none;
     padding: .5rem 1rem;
-    margin: 0;
-    text-decoration: none;
+    margin-left: 0;
+    margin-right: 1em;
     background: #0069ed;
     color: #ffffff;
-    font-family: sans-serif;
+    font-family: inherit;
     font-size: 1rem;
-    cursor: pointer;
-    /*text-align: center;*/
-    transition: background 250ms ease-in-out,
-    transform 150ms ease;
     -webkit-appearance: none;
     -moz-appearance: none;
 }
 
-button:hover,
-button:focus {
+button:disabled {
+    background: gray;
+    color: darkgrey;
+}
+
+button:enabled {
+    cursor: pointer;
+    transition: background 250ms ease-in-out,
+    transform 150ms ease;
+}
+
+button:enabled:hover,
+button:enabled:focus {
     background: #0053ba;
 }
 
@@ -92,4 +193,17 @@ button:focus {
 
 button:active {
     transform: scale(0.99);
+}
+
+.counter .button-line {
+    display: inline-block;
+    margin: 0 0 0 .5em;
+}
+
+.timer > .button-line {
+    margin: 15px 0 0 0;
+}
+
+dialog button {
+    margin: 0 .5em 0 .5em;
 }

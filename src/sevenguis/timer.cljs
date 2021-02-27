@@ -1,43 +1,131 @@
 (ns sevenguis.timer
   (:require
-    [reagent.core :as r]))
+    [reagent.core :as r]
+    [sevenguis.util :as util]))
 
-(defn timer []
-  (r/with-let [decimal-precision 1
-               seconds-between-ticks 0.1
-               milliseconds-between-ticks (* 1000 seconds-between-ticks)
-               clock-is-ticking (r/atom false)
-               seconds-until-stop (r/atom 60.0)
-               seconds-elapsed (r/atom 0.0)
-               time-is-up (fn [] (>= (+ @seconds-elapsed 0.1) @seconds-until-stop))
-               tick! (fn [] (r/rswap! seconds-elapsed (fn [x] (+ x seconds-between-ticks))))
-               ticking-process (r/atom nil)
-               stop-clock! (fn [] (reset! clock-is-ticking false)
-                             (js/clearInterval @ticking-process))
-               tick-if-time-remains! #(if (time-is-up) (stop-clock!) (tick!))
-               start-clock! (fn [] (reset! clock-is-ticking true)
-                              (reset! ticking-process (js/setInterval tick-if-time-remains!
-                                                                      milliseconds-between-ticks)))]
-              [:div.gui
-               [:div.gui-title "Timer"]
-               [:div.gui-main
-                [:meter {:min 0 :max @seconds-until-stop :value @seconds-elapsed}]
-                [:div.gui-display (.toFixed @seconds-elapsed decimal-precision) "s"]
-                [:div#duration
-                 [:div "Duration"]
-                 [:input {:type      "range" :min 5 :max 600 :value @seconds-until-stop
-                          :on-change (fn [event]
-                                       (let [user-input (sevenguis.util/get-event-value event)]
-                                         (reset! seconds-until-stop user-input)
-                                         (if (and (not @clock-is-ticking)
-                                                  (not (= @seconds-elapsed 0))
-                                                  (< @seconds-elapsed @seconds-until-stop))
-                                           (start-clock!))))}]
-                 [:div.gui-display (.toFixed (js/parseFloat @seconds-until-stop) 1) "s"]]
-                [:div#buttons
-                 [:button#reset {:on-click #((reset! seconds-elapsed 0)
-                                             (js/clearInterval @ticking-process))}
-                  "Reset"]
-                 [:button#start {:on-click start-clock!}
-                  "Start"]]]]
-              (finally (js/clearInterval @ticking-process))))
+(def state (r/atom {:duration     nil
+                    :elapsed      0}))
+(def ms-between-ticks 50)
+(def n-decimal-places 2)
+
+(defn elapsed-time-progress [percentage]
+  (js/console.log "Elapsed time progress bar rendering")
+  [:div.gui-line
+   [:span "Elapsed time:"]
+   [:progress.timer-progress
+    {:value percentage}]])
+
+;todo elapsed time bar can carry all the elapsed time...can be passed duration
+;todo and put the gui text line in there
+
+(defn button-row [reset-clock stop start]
+  (js/console.log "Button row rendering")
+  [:div.gui-line.button-line
+   [:button {:on-click reset-clock} "Reset"]
+   [:button {:on-click stop} "Stop"]
+   [:button {:on-click start} "Start"]])
+
+(defn old-timer [{:keys [min-seconds max-seconds]}]
+  (r/with-let [!bubble (atom nil)
+               duration (r/cursor state [:duration])
+               show-bubble? (r/cursor state [:show-bubble?])
+               elapsed (r/cursor state [:elapsed])
+               duration-percentage (fn [] (-> @duration
+                                              (- min-seconds)
+                                              (/ (- max-seconds min-seconds))
+                                              (* 100)))
+               reposition-bubble (fn []
+                                   (when-let [bubble @!bubble]
+                                     (let [bubble-shift (+ (* (duration-percentage) 1.12) 10)]
+                                       (set! (.-innerHTML bubble) (str @duration "s"))
+                                       (set! (.. bubble -style -left) (str bubble-shift "px")))))
+               tick #(r/rswap! elapsed (partial + (/ ms-between-ticks 1000)))
+               time-remaining? #(< @elapsed @duration)
+               ticking (atom nil)
+               stop (fn [] (js/clearInterval @ticking)
+                      (reset! ticking nil))
+               start #(when-not @ticking
+                        (reset! ticking (js/setInterval
+                                          (fn [] (if (time-remaining?) (tick) (stop)))
+                                          ms-between-ticks)))
+               reset-clock (fn [] (stop) (reset! elapsed 0))
+               _ (reset! duration min-seconds)]
+
+    [:div.gui.timer
+     [elapsed-time-progress (/ @elapsed @duration)]
+     [:div.gui-line (str (.toFixed @elapsed n-decimal-places) "s")]
+     [:div.gui-line
+      [:span "Duration:"]
+      [:div#duration.range-wrap
+       [:input.range {:type          "range"
+                      :value         @duration
+                      :min           min-seconds
+                      :max           max-seconds
+                      :on-input      (fn [event]
+                                       (->> event util/get-event-value (reset! duration))
+                                       (reposition-bubble)
+                                       (when (and (not @ticking)
+                                                  (time-remaining?))
+                                         (start)))
+                      :on-mouse-down (fn [] (reset! show-bubble? true)
+                                       (reposition-bubble))
+                      :on-mouse-up   #(reset! show-bubble? false)}]
+       [:output.bubble {:ref    #(reset! !bubble %)
+                        :hidden (not @show-bubble?)}]]]
+     [button-row reset-clock stop start]]))
+
+(defn duration-display [min max duration-callback]
+  (js/console.log "Duration display rendering")
+  (r/with-let [duration (r/atom min)
+               percentage #(-> (/ (- @duration min) (- max min))
+                               (* 100))
+               !bubble (atom nil)
+               show-bubble? (r/atom false)
+               reposition-bubble #(when-let [bubble @!bubble]
+                                    (let [bubble-shift (+ (* (percentage) 1.12) 10)]
+                                      (set! (.-innerHTML bubble) (str @duration "s"))
+                                      (set! (.. bubble -style -left) (str bubble-shift "px"))))]
+    [:div.gui-line
+     [:span "Duration:"]
+     [:div#duration.range-wrap
+      [:input.range {:type          "range"
+                     :value         @duration
+                     :min           min
+                     :max           max
+                     :on-input      (fn [event]
+                                      (let [new-val (-> event util/get-event-value)]
+                                        (reset! duration new-val)
+                                        (duration-callback new-val)
+                                        (reposition-bubble)))
+                     :on-mouse-down (fn [] (reset! show-bubble? true)
+                                      (reposition-bubble))
+                     :on-mouse-up   #(reset! show-bubble? false)}]
+      [:output.bubble {:ref    #(reset! !bubble %)
+                       :hidden (not @show-bubble?)}]]]))
+
+
+(defn timer [{:keys [min-seconds max-seconds]}]
+  (js/console.log "Main rendering")
+  (r/with-let [duration (r/cursor state [:duration])
+               elapsed (r/cursor state [:elapsed])
+               tick #(r/rswap! elapsed (partial + (/ ms-between-ticks 1000)))
+               time-remaining? #(< @elapsed @duration)
+               ticking (atom nil)
+               stop (fn [] (js/clearInterval @ticking)
+                      (reset! ticking nil))
+               start #(when-not @ticking
+                        (reset! ticking (js/setInterval
+                                          (fn [] (if (time-remaining?) (tick) (stop)))
+                                          ms-between-ticks)))
+               reset-clock (fn [] (stop) (reset! elapsed 0))
+               alter-duration (fn [new-duration]
+                                (reset! duration new-duration)
+                                (when (and (not @ticking)
+                                           (time-remaining?))
+                                  (start)))
+               _ (reset! duration min-seconds)]
+    [:div.gui.timer
+     [elapsed-time-progress (/ @elapsed @duration)]
+     [:div.gui-line (str (.toFixed @elapsed n-decimal-places) "s")]
+     [duration-display min-seconds max-seconds alter-duration]
+     [button-row reset-clock stop start]]))

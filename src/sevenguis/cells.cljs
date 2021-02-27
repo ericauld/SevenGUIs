@@ -293,11 +293,9 @@
                                          (r/rswap! state assoc :modal-menu-visible? false :selected-cell nil))
                user-presses-enter (fn [e] (-> e .-key (= "Enter")))
                user-presses-escape (fn [e] (-> e .-key (= "Escape")))]
-              [:div.cell-modal {:on-key-down #(if (:modal-menu-visible? @state)
-                                                (if (user-presses-enter %)
-                                                  (done-editing-listener)
-                                                  (if (user-presses-escape %)
-                                                    (cancel-editing-listener))))
+              [:div.cell-modal {:on-key-down (fn [keypress] (if (:modal-menu-visible? @state)
+                                                              (cond (user-presses-enter keypress) (done-editing-listener)
+                                                                    (user-presses-escape keypress) (cancel-editing-listener))))
                                 :hidden      (not @(r/cursor state [:modal-menu-visible?]))}
                [:input
                 {:ref       #(reset! !modal-element %)
