@@ -4,9 +4,9 @@
     [sevenguis.util :as util]
     [clojure.string :as str]))
 
-(def state (r/atom {:flight-type            "One-way"
-                    :departing-flight-input nil
-                    :return-flight-input    nil}))
+(defonce !state (r/atom {:flight-type           "One-way"
+                         :departing-flight-input nil
+                         :return-flight-input    nil}))
 
 (defrecord Date [month day year])
 
@@ -49,10 +49,10 @@
 
 (defn flight-booker []
   (r/with-let
-    [flight-type (r/cursor state [:flight-type])
+    [flight-type (r/cursor !state [:flight-type])
      one-way-flight? #(= @flight-type "One-way")
-     departing-flight-input (r/cursor state [:departing-flight-input])
-     return-flight-input (r/cursor state [:return-flight-input])
+     departing-flight-input (r/cursor !state [:departing-flight-input])
+     return-flight-input (r/cursor !state [:return-flight-input])
      good-user-input? #(if (one-way-flight?)
                          (let [date (str->Date @departing-flight-input)]
                            (and date

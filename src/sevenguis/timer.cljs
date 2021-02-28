@@ -3,13 +3,12 @@
     [reagent.core :as r]
     [sevenguis.util :as util]))
 
-(def state (r/atom {:duration     nil
-                    :elapsed      0}))
+(defonce state (r/atom {:duration     nil
+                        :elapsed      0}))
 (def ms-between-ticks 50)
 (def n-decimal-places 2)
 
 (defn elapsed-time-progress [percentage]
-  (js/console.log "Elapsed time progress bar rendering")
   [:div.gui-line
    [:span "Elapsed time:"]
    [:progress.timer-progress
@@ -19,7 +18,6 @@
 ;todo and put the gui text line in there
 
 (defn button-row [reset-clock stop start]
-  (js/console.log "Button row rendering")
   [:div.gui-line.button-line
    [:button {:on-click reset-clock} "Reset"]
    [:button {:on-click stop} "Stop"]
@@ -75,7 +73,6 @@
      [button-row reset-clock stop start]]))
 
 (defn duration-display [min max duration-callback]
-  (js/console.log "Duration display rendering")
   (r/with-let [duration (r/atom min)
                percentage #(-> (/ (- @duration min) (- max min))
                                (* 100))
@@ -105,7 +102,6 @@
 
 
 (defn timer [{:keys [min-seconds max-seconds]}]
-  (js/console.log "Main rendering")
   (r/with-let [duration (r/cursor state [:duration])
                elapsed (r/cursor state [:elapsed])
                tick #(r/rswap! elapsed (partial + (/ ms-between-ticks 1000)))

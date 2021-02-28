@@ -1,46 +1,52 @@
 (ns sevenguis.temperature-converter
   (:require
     [reagent.core :as r]
-    [sevenguis.util :as util]))
+    [sevenguis.util :as util]
+    [clojure.string :as str]))
 
-(def state (r/atom {:celsius-str    nil
-                    :fahrenheit-str nil}))
-(def degrees-fahrenheit-unicode \u2109)
-(def degrees-celsius-unicode \u2103)
-(def font "20.5px Roboto")
+(def scales #{:fahrenheit :celsius})
 
-(defn convert-numeric-string
-  ([converter s n-decimal-places]
-   (let [parse-attempt (js/parseFloat s)]
-     (if-not (js/isNaN parse-attempt)
-       (-> parse-attempt converter (.toFixed n-decimal-places) str))))
-  ([converter s] (convert-numeric-string converter s 2)))
+(def ->celsius {:fahrenheit (fn fahrenheit->celsius [fahrenheit-temp]
+                              (-> fahrenheit-temp (- 32) (* 5) (/ 9)))
+                :celsius    identity})
+(def from-celsius {:fahrenheit (fn celsius->fahrenheit [celsius-temp]
+                                 (when celsius-temp
+                                   (-> celsius-temp (* 9) (/ 5) (+ 32))))
+                   :celsius    identity})
 
-(defn fahrenheit->celsius [fahrenheit-temp]
-  (-> fahrenheit-temp (- 32) (* 5) (/ 9)))
+(def suffix-unicode-symbol {:fahrenheit \u2109 :celsius \u2103})
 
-(defn celsius->fahrenheit [celsius-temp]
-  (-> celsius-temp (* 9) (/ 5) (+ 32)))
+(def font "21.5px Roboto")
+
+(defn temperature-input [{:keys [scale externally-set-temperature update-temp]}]
+  (r/with-let [!input (r/atom nil)
+               !focused? (r/atom false)]
+    [util/input-with-suffix
+     {:suffix-str   (scale suffix-unicode-symbol)
+      :value        (if @!focused? @!input externally-set-temperature)
+      :placeholder  (-> scale name (str/capitalize))
+      :value-update (fn [new-user-input]
+                      (reset! !input new-user-input)
+                      (let [parse-attempt (js/parseFloat new-user-input)
+                            convert-to-celsius (scale ->celsius)]
+                        (if (js/isNaN parse-attempt)
+                          (update-temp nil)
+                          (-> parse-attempt convert-to-celsius update-temp))))
+      :font         font
+      :on-focus     (fn [_]
+                      (reset! !input externally-set-temperature)
+                      (reset! !focused? true))
+      :on-blur      (fn [_]
+                      (reset! !focused? false)
+                      (reset! !input nil))}]))
 
 (defn temperature-converter []
-  (r/with-let [fahrenheit (r/cursor state [:fahrenheit-str])
-               celsius (r/cursor state [:celsius-str])]
-    [:div.temperature-converter.gui
-     [util/input-with-suffix {:suffix-str            degrees-fahrenheit-unicode
-                              :value                 @fahrenheit
-                              :placeholder           "Fahrenheit"
-                              :callback-value-update (fn [new-value]
-                                                       (reset! fahrenheit new-value)
-                                                       (->> new-value
-                                                            (convert-numeric-string fahrenheit->celsius)
-                                                            (reset! celsius)))
-                              :font                  font}]
-     [util/input-with-suffix {:suffix-str            degrees-celsius-unicode
-                              :value                 @celsius
-                              :placeholder           "Celsius"
-                              :callback-value-update (fn [new-value]
-                                                       (reset! celsius new-value)
-                                                       (->> new-value
-                                                            (convert-numeric-string celsius->fahrenheit)
-                                                            (reset! fahrenheit)))
-                              :font                  font}]]))
+  (r/with-let [!celsius-temp (r/atom nil)]
+    (into [:div.temperature-converter.gui]
+          (for [scale scales]
+            [temperature-input
+             {:scale                      scale
+              :externally-set-temperature @(r/track str (when @!celsius-temp
+                                                          (let [convert-from-celsius (scale from-celsius)]
+                                                            (-> @!celsius-temp convert-from-celsius (.toFixed 2)))))
+              :update-temp                #(reset! !celsius-temp %)}]))))

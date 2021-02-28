@@ -17,10 +17,10 @@
    [:h1 "Seven GUIs in Reagent"]
    [:ol
     [:li [counter/counter]]
-    [:li [temperature-converter/temperature-converter]]
-    [:li [flight-booker/flight-booker]]
-    [:li [timer/timer {:min-seconds 5
-                       :max-seconds 300}]]]])
+    [:li [temperature-converter/temperature-converter]]]])
+;    [:li [flight-booker/flight-booker]]
+;    [:li [timer/timer {:min-seconds 5
+;                       :max-seconds 300]]]])
 ;    [timer/timer]
 ;    [crud/crud]
 ;    [circle-drawer/circle-drawer]
