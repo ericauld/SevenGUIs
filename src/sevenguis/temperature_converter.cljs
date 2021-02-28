@@ -27,11 +27,12 @@
       :placeholder  (-> scale name (str/capitalize))
       :value-update (fn [new-user-input]
                       (reset! !input new-user-input)
-                      (let [parse-attempt (js/parseFloat new-user-input)
-                            convert-to-celsius (scale ->celsius)]
+                      (let [parse-attempt (js/parseFloat new-user-input)]
                         (if (js/isNaN parse-attempt)
                           (update-temp nil)
-                          (-> parse-attempt convert-to-celsius update-temp))))
+                          (as-> parse-attempt v
+                                ((scale ->celsius) v)
+                                (update-temp v)))))
       :font         font
       :on-focus     (fn [_]
                       (reset! !input externally-set-temperature)
@@ -47,6 +48,7 @@
             [temperature-input
              {:scale                      scale
               :externally-set-temperature @(r/track str (when @!celsius-temp
-                                                          (let [convert-from-celsius (scale from-celsius)]
-                                                            (-> @!celsius-temp convert-from-celsius (.toFixed 2)))))
+                                                          (as-> @!celsius-temp v
+                                                                ((scale from-celsius) v)
+                                                                (.toFixed v 2))))
               :update-temp                #(reset! !celsius-temp %)}]))))
