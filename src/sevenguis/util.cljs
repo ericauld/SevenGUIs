@@ -3,6 +3,8 @@
     [reagent.core :as r]
     [clojure.string :as str]))
 
+(defn within [tolerance float1 float2]
+  (< (js/Math.abs (- float2 float1)) tolerance))
 
 (defn get-event-value [event]
   (.. event -target -value))

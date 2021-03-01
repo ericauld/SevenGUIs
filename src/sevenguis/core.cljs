@@ -18,9 +18,9 @@
    [:ol
     [:li [counter/counter]]
     [:li [temperature-converter/temperature-converter]]
-    [:li [flight-booker/flight-booker]]]])
-;    [:li [timer/timer {:min-seconds 5
-;                       :max-seconds 300]]]])
+    [:li [flight-booker/flight-booker]]
+    [:li [timer/timer {:min-seconds 5
+                       :max-seconds 300}]]]])
 ;    [crud/crud]
 ;    [circle-drawer/circle-drawer]
 ;    [cells/cells]]])

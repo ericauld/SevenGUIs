@@ -34,10 +34,10 @@
                                 ((scale ->celsius) v)
                                 (update-temp v)))))
       :font         font
-      :on-focus     (fn [_]
+      :on-focus     (fn on-focus [_]
                       (reset! !input externally-set-temperature)
                       (reset! !focused? true))
-      :on-blur      (fn [_]
+      :on-blur      (fn on-blur [_]
                       (reset! !focused? false)
                       (reset! !input nil))}]))
 

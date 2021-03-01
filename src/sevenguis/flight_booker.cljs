@@ -8,7 +8,7 @@
 (def notation {:month "mm"
                :day   "dd"
                :year  "yyyy"})
-(def date-notation-order [:day :month :year])
+(def date-notation-order [:month :day :year])
 (def date-format (str/join date-separator
                            (for [time-period date-notation-order]
                              (time-period notation))))
@@ -116,8 +116,8 @@
                             (->> e
                                  util/get-event-value
                                  (reset! !flight-type)))}
-      [:option {:value "One-way"} "One-way"]
-      [:option {:value "Round-trip"} "Round-trip"]]
+      [:option {:value "One-way"} "One-way flight"]
+      [:option {:value "Round-trip"} "Round-trip flight"]]
      [flight-input {:update-date (fn update-date [date]
                                    (reset! !departure date))}]
      [flight-input {:update-date (fn update-date [date]

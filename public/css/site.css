@@ -13,6 +13,7 @@ button:not(#book-button) {
 }
 
 .bubble {
+    top: 15px;
     margin: 1.3rem 0 0 0;
     background: #0069ed;
     color: white;
@@ -29,7 +30,7 @@ button:not(#book-button) {
     width: 2px;
     height: 2px;
     background: blue;
-    top: -1px;
+    bottom: -1px;
     left: 50%;
 }
 
