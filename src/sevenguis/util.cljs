@@ -14,7 +14,8 @@
   (let [times-symbol \u00D7
         confirm (fn [_e]
                   (close-modal)
-                  (listener))]
+                  (when listener
+                    (listener)))]
     [:dialog {:ref set-ref-func}
      [:div.dialog-close-wrapper
       [:span.dialog-close {:on-click close-modal} times-symbol]]

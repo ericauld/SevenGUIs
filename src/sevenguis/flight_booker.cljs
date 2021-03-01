@@ -1,106 +1,140 @@
 (ns sevenguis.flight-booker
   (:require
     [reagent.core :as r]
-    [sevenguis.util :as util]
-    [clojure.string :as str]))
-
-(defonce !state (r/atom {:flight-type           "One-way"
-                         :departing-flight-input nil
-                         :return-flight-input    nil}))
-
-(defrecord Date [month day year])
+    [clojure.string :as str]
+    [sevenguis.util :as util]))
 
 (def date-separator \/)
+(def notation {:month "mm"
+               :day   "dd"
+               :year  "yyyy"})
+(def date-notation-order [:day :month :year])
+(def date-format (str/join date-separator
+                           (for [time-period date-notation-order]
+                             (time-period notation))))
 
-(def today
-  (let [now (js/Date.)
-        month (-> now .getMonth (+ 1))
-        day (.getDate now)
-        year (.getFullYear now)]
-    (->Date month day year)))
+(def pattern-for {:month "\\d{2}"
+                  :day   "\\d{2}"
+                  :year  "\\d{4}"})
 
-(def date-pattern (re-pattern (str "^\\d{2}"
-                                   date-separator
-                                   "\\d{2}"
-                                   date-separator
-                                   "\\d{4}$")))
-
-(defn in-date-format? [date-str]
-  (and date-str
-       (re-matches date-pattern date-str)))
+(def date-pattern (re-pattern (str \^
+                                   (str/join
+                                     date-separator
+                                     (for [time-period date-notation-order]
+                                       (time-period pattern-for)))
+                                   \$)))
 
 (defn actual-date? [{:keys [month day year]}]
+  "Use js date to determine whether this date will/did occur. "
+    "If a date has never/will never occur, the js/Date constructor will "
+    "roll over to a real date, and this causes the parsed value and the "
+    " given value to be different."
   (let [date-candidate (js/Date. year (- month 1) day)
         parsed-month (-> date-candidate .getMonth (+ 1))
         parsed-day (.getDate date-candidate)
         parsed-year (.getFullYear date-candidate)]
     (= [month day year] [parsed-month parsed-day parsed-year])))
 
-(defn str->Date [date-str]
-  (when (in-date-format? date-str)
-    (let [[month day year] (mapv js/parseInt (str/split date-str date-separator))
-          date-candidate (->Date month day year)]
-      (when (actual-date? date-candidate) date-candidate))))
+(defrecord Date [month day year])
 
-(defn dates-in-order? [date1 date2]
+(defn today []
+  (let [now (js/Date.)
+        month (-> now .getMonth (+ 1))
+        day (.getDate now)
+        year (.getFullYear now)]
+    (->Date month day year)))
+
+(defn is-before-or-same-as [date1 date2]
   (<= (compare [(:year date1) (:month date1) (:day date1)]
                [(:year date2) (:month date2) (:day date2)])
       0))
 
+(defn already-happened? [date]
+  (not (-> (today) (is-before-or-same-as date))))
+
+(defn flight-input [{:keys [update-date disabled?]}]
+  (r/with-let [!user-input (r/atom nil)
+               no-input? (fn []
+                           (let [input @!user-input]
+                             (cond
+                               (nil? input) true
+                               (string? input) (empty? input)
+                               :else false)))
+               in-date-format? (fn [] (as-> @!user-input v
+                                            ((fnil #(re-matches date-pattern %) "") v)
+                                            (some? v)))
+               parse-input (fn []
+                             (when (in-date-format?)
+                               (let [date-keys date-notation-order
+                                     date-values (->> (str/split @!user-input date-separator)
+                                                      (map js/parseInt))
+                                     date (->> (interleave date-keys date-values)
+                                               (apply hash-map)
+                                               (map->Date))]
+                                 (when (actual-date? date)
+                                   date))))]
+    [:input {:className   (when-not (or (no-input?)
+                                        (parse-input))
+                            "bad-date")
+             :placeholder (when-not disabled? date-format)
+             :value       @!user-input
+             :on-change   (fn update-input [e]
+                            (let [new-user-input (util/get-event-value e)]
+                              (reset! !user-input new-user-input)
+                              (update-date (parse-input))))
+             :disabled    disabled?}]))
+
+(def success-message "Congrats! You're all set!")
+(def date-in-past-message (str "We regret to inform you that one of the days you "
+                               "have selected is in the past."))
+(def out-of-order-message (str "Unfortunately, it is impossible to arrive before you depart."))
+
 (defn flight-booker []
-  (r/with-let
-    [flight-type (r/cursor !state [:flight-type])
-     one-way-flight? #(= @flight-type "One-way")
-     departing-flight-input (r/cursor !state [:departing-flight-input])
-     return-flight-input (r/cursor !state [:return-flight-input])
-     good-user-input? #(if (one-way-flight?)
-                         (let [date (str->Date @departing-flight-input)]
-                           (and date
-                                (dates-in-order? today date)))
-                         (let [date1 (str->Date @departing-flight-input)
-                               date2 (str->Date @return-flight-input)]
-                           (and date1
-                                date2
-                                (dates-in-order? today date1)
-                                (dates-in-order? date1 date2))))
-     !modal (atom nil)
-     set-modal-ref #(reset! !modal %)
-     close-modal (fn [_e] (when-let [modal @!modal]
-                            (.close modal)))
-     show-modal (fn [_e] (when-let [modal @!modal]
-                           (.showModal modal)))]
+  (r/with-let [!flight-type (r/atom "One-way")
+               !departure (r/atom nil)
+               !return (r/atom nil)
+               !modal (atom nil)
+               !modal-message (r/atom nil)
+               book-button-disabled? #(not (or (and (= @!flight-type "One-way")
+                                                    @!departure)
+                                               (and @!departure
+                                                    @!return)))
+               set-modal-message #(reset!
+                                    !modal-message
+                                    (cond
+                                      (and (= @!flight-type "One-way")
+                                           (already-happened? @!departure)) date-in-past-message
+                                      (and (= @!flight-type "Round-trip")
+                                           (or (already-happened? @!departure)
+                                               (already-happened? @!return))) date-in-past-message
+                                      (and (= @!flight-type "Round-trip")
+                                           (not (-> @!departure
+                                                    (is-before-or-same-as @!return)))) out-of-order-message
+                                      :else success-message))]
     [:div.gui.flight-booker
-     [:select {:on-change    #(->> % util/get-event-value (reset! flight-type))
-               :defaultValue "One-way"}
+     [:select {:on-change (fn change-select [e]
+                            (->> e
+                                 util/get-event-value
+                                 (reset! !flight-type)))}
       [:option {:value "One-way"} "One-way"]
       [:option {:value "Round-trip"} "Round-trip"]]
-     [:input {:className   (when-not (or (empty? @departing-flight-input)
-                                         (str->Date @departing-flight-input))
-                             "bad-date")
-              :placeholder (str "mm" date-separator "dd" date-separator "yyyy")
-              :value       @departing-flight-input
-              :on-change   #(->> % (util/get-event-value) (reset! departing-flight-input))}]
-     [:input {:className   (when-not (or
-                                       (one-way-flight?)
-                                       (empty? @return-flight-input)
-                                       (str->Date @return-flight-input))
-                             "bad-date")
-              :placeholder (when-not (one-way-flight?) (str "mm" date-separator "dd" date-separator "yyyy"))
-              :value       (when-not (one-way-flight?) @return-flight-input)
-              :on-change   #(->> % (util/get-event-value) (reset! return-flight-input))
-              :disabled    (one-way-flight?)}]
-     [:button#book-button {:disabled (not (good-user-input?))
-                           :on-click show-modal}
+     [flight-input {:update-date (fn update-date [date]
+                                   (reset! !departure date))}]
+     [flight-input {:update-date (fn update-date [date]
+                                   (reset! !return date))
+                    :disabled?   (= @!flight-type "One-way")}]
+     [:button#book-button {:on-click (fn on-click [_]
+                                       (when-let [modal @!modal]
+                                         (set-modal-message)
+                                         (.showModal modal)))
+                           :disabled (book-button-disabled?)}
       "Book!"]
-     [util/modal {:text "You're all set!"
-                  :set-ref-func set-modal-ref
-                  :listener #()
-                  :close-modal close-modal
-                  :button-text "OK"}]]))
-
-
-
-
-
-
+     [util/modal {:text         @!modal-message             ;todo make sure it's not rendering when modal isn't showing
+                  :set-ref-func (fn set-modal-ref [ref]
+                                  (reset! !modal ref))
+                  :listener     nil
+                  :close-modal  (fn close-modal []
+                                  (when-let [modal @!modal]
+                                    (.close modal)))
+                  :button-text  "OK"}]]))
 
