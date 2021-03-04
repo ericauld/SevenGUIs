@@ -8,6 +8,64 @@ body {
     /*line-height: 1.5em;*/
 }
 
+#seven-guis-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+#name-list {
+    font-size: medium;
+    width: 100%;
+    padding: 3px 3px;
+}
+
+.crud-name {
+    padding: 2px 3px;
+}
+
+#blank-line {
+    min-height: 1em;
+}
+
+#crud input:not(#prefix-input) {
+    width: 5em;
+    font-size: medium;
+}
+
+#prefix-input {
+    width: 5.7em;
+    border-bottom: 1px solid;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    font-size: inherit;
+}
+
+#prefix-input:focus {
+    outline: none;
+}
+
+.subcolumn {
+    display: inline-block;
+    width: 40%;
+    vertical-align: top;
+}
+
+.crud-column {
+    display: inline-block;
+    width: 40%;
+    padding: 0 .7em 0 0;
+    vertical-align: top;
+}
+
+.crud-column > .gui-line {
+    margin-top: 0;
+}
+
+#crud {
+    width: 29em;
+}
+
 button:not(#book-button) {
     border-radius: 2px;
 }
@@ -60,7 +118,7 @@ button:not(#book-button) {
     /*background: gray;*/
 }
 
-.bad-date {
+.bad-input {
     background: rgba(193, 66, 66, 0.19);
 }
 

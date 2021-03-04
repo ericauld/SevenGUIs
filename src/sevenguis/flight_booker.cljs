@@ -75,7 +75,7 @@
                                    date))))]
     [:input {:className   (when-not (or (no-input?)
                                         (parse-input))
-                            "bad-date")
+                            "bad-input")
              :placeholder (when-not disabled? date-format)
              :value       @!user-input
              :on-change   (fn update-input [e]
@@ -129,7 +129,7 @@
                                          (.showModal modal)))
                            :disabled (book-button-disabled?)}
       "Book!"]
-     [util/modal {:text         @!modal-message             ;todo make sure it's not rendering when modal isn't showing
+     [util/modal {:text         @!modal-message
                   :set-ref-func (fn set-modal-ref [ref]
                                   (reset! !modal ref))
                   :listener     nil

@@ -4,60 +4,133 @@
     [sevenguis.util :as util]
     [clojure.string :as str]))
 
+(defrecord Name [first last])
+
+(def initial-names [(->Name "Joni" "Mitchell")
+                    (->Name "Trish" "Keenan")
+                    (->Name "Laura" "Viers")
+                    (->Name "Cate" "Le Bon")])
+
+(defn format-name [name] (str (:last name)
+                              ", "
+                              (:first name)))
+
+(def allowed-prefix-regex #"^[^\\]*$")
+
+(defn valid-prefix? [user-input]
+  (some? (re-matches allowed-prefix-regex user-input)))
+
+(defn name-input [{:keys [name-input
+                          update-name
+                          surname-input
+                          update-surname]}]
+  [:div.crud-column
+   [:div#blank-line.gui-line " "]
+   [:div.subcolumn-wrapper
+    [:div.subcolumn
+     [:div.gui-line [:span "Name:"]]
+     [:div.gui-line [:span "Surname:"]]]
+    [:div.subcolumn
+     [:div.gui-line [:input {:value     name-input
+                             :on-change (fn on-change-name [e]
+                                          (-> e
+                                              util/get-event-value
+                                              update-name))}]]
+     [:div.gui-line [:input {:value     surname-input
+                             :on-change (fn on-change-surname [e]
+                                          (-> e
+                                              util/get-event-value
+                                              update-surname))}]]]]])
+
+(defn name-list [{:keys [names select matches-user-prefix?]}]
+  [:div
+   [:select#name-list {:size      5
+                       :on-change (fn select-on-change [e]
+                                    (->> e
+                                         util/get-event-value
+                                         js/parseInt
+                                         select))}
+    (doall (keep-indexed
+             (fn build-option-element [index my-name]
+               (when (and
+                       my-name
+                       (matches-user-prefix? my-name))
+                 (let [formatted-name (format-name my-name)]
+                   ^{:key (str index)}
+                   [:option.crud-name {:value (str index)} formatted-name])))
+             names))]])
+
+(defn crud-buttons [{:keys [create update delete]}]
+  [:div.gui-line.button-line
+   [:button {:on-click create} "Create"]
+   [:button {:on-click update} "Update"]
+   [:button {:on-click delete} "Delete"]])
+
+(defn prefix-input [{:keys [update-prefix]}]
+  (r/with-let [!user-prefix-valid? (r/atom true)]
+    [:div.gui-line
+     [:span "Filter prefix:"]
+     [:input#prefix-input {:className (when-not @!user-prefix-valid? "bad-input")
+                           :on-change (fn update-prefix-from-event [e]
+                                        (let [user-input (util/get-event-value e)]
+                                          (if (valid-prefix? user-input)
+                                            (do
+                                              (when-not @!user-prefix-valid?
+                                                (reset! !user-prefix-valid? true))
+                                              (update-prefix user-input))
+                                            (reset! !user-prefix-valid? false))))}]]))
+
 (defn crud []
-  (r/with-let [name-list (r/atom #{"Smith John" "Jones Jane"})
-               first-name-input (r/atom nil)
-               surname-input (r/atom nil)
-               selected-name (r/atom nil)
-               filter-prefix (r/atom nil)]
-              [:div.gui
-               [:div.gui-title "CRUD"]
-               [:div.gui-main
-                [:div#prefix
-                 [:div "Filter prefix:"]
-                 [:input {:value     @filter-prefix
-                          :on-change (fn [event] (let [input (util/get-event-value event)]
-                                                   (reset! filter-prefix input)))}]]
-                [:div#name
-                 [:div#first-name
-                  [:div "Name:"]
-                  [:input {:value     @first-name-input
-                           :on-change (fn [event]
-                                        (let [user-input (util/get-event-value event)]
-                                          (reset! first-name-input user-input)))}]]
-                 [:div#surname
-                  [:div "Surname:"]
-                  [:input {:value     @surname-input
-                           :on-change (fn [event]
-                                        (let [user-input (util/get-event-value event)]
-                                          (reset! surname-input user-input)))}]]
-                 [:button {:on-click
-                           #(let [first-name @first-name-input
-                                  surname @surname-input]
-                              (if-not (or (str/blank? first-name)
-                                          (str/blank? surname))
-                                (do (r/rswap! name-list conj (str surname " " first-name))
-                                    (reset! first-name-input nil)
-                                    (reset! surname-input nil))))}
-                  "Create"]
-                 [:button {:on-click #(let [first-name @first-name-input
-                                            surname @surname-input
-                                            old-name @selected-name]
-                                        (if-not (or (str/blank? first-name)
-                                                    (str/blank? surname)
-                                                    (str/blank? old-name))
-                                          (do (r/rswap! name-list disj old-name)
-                                              (r/rswap! name-list conj (str surname " " first-name)))))}
-                  "Update"]
-                 [:button {:on-click #(if @selected-name (r/rswap! name-list disj @selected-name))}
-                  "Delete"]]
-                [:div#name-list
-                 [:select {:size 5 :on-change (fn [event]
-                                                (let [selected (util/get-event-value event)]
-                                                  (reset! selected-name selected)))}
-                  (let [prefix @filter-prefix
-                        prefix-as-regex (re-pattern (str prefix ".*"))
-                        matches-prefix? (fn [name] (re-matches prefix-as-regex name))
-                        filtered-names (filter matches-prefix? @name-list)]
-                    (doall (for [name filtered-names :let [[last first] (str/split name " ")]]
-                             ^{:key name} [:option {:value name} (str last ", " first)])))]]]]))
+  (r/with-let [!state (r/atom {:names         initial-names
+                               :input-name    nil
+                               :input-surname nil
+                               :input-prefix  nil})
+               !index-of-selected (r/atom 0)
+               update-input-name (fn [name-str] (r/rswap! !state assoc :input-name name-str))
+               update-input-surname (fn [surname-str] (r/rswap! !state assoc :input-surname surname-str))
+               delete-selected (fn []
+                                 (when @!index-of-selected
+                                   (r/rswap! !state assoc-in [:names @!index-of-selected] nil)
+                                   (reset! !index-of-selected nil)))
+               get-name-from-input (fn []
+                                     (let [first-name (:input-name @!state) ;todo limit scope?
+                                           surname (:input-surname @!state)] ;todo limit scope?
+                                       (when (and
+                                               (string? first-name)
+                                               (string? surname)
+                                               (not (str/blank? first-name))
+                                               (not (str/blank? surname)))
+                                         (->Name first-name surname))))
+               update-selected (fn []
+                                 (when-let [new-name (get-name-from-input)]
+                                   (r/rswap! !state assoc-in [:names @!index-of-selected] new-name)
+                                   (r/rswap! !state assoc :input-name nil :input-surname nil)))
+               create (fn []
+                        (when-let [new-name (get-name-from-input)]
+                          (r/rswap! !state update :names conj new-name)
+                          (r/rswap! !state assoc :input-name nil :input-surname nil)))
+               select (fn [index]
+                        (reset! !index-of-selected index))
+               matches-users-prefix? (fn [my-name]
+                                       (let [prefix @(r/cursor !state [:input-prefix])]
+                                         (if (or (not prefix)
+                                                 (str/blank? prefix))
+                                           true
+                                           (let [prefix-pattern (re-pattern (str "^" prefix))]
+                                             (some? (re-find prefix-pattern (:last my-name)))))))
+               update-prefix (fn [s]
+                               (r/rswap! !state assoc :input-prefix s))]
+    [:div#crud.gui
+     [:div.crud-column-wrapper
+      [:div.crud-column
+       [prefix-input {:update-prefix update-prefix}]
+       [name-list {:names                @(r/cursor !state [:names])
+                   :select               select
+                   :matches-user-prefix? matches-users-prefix?}]]
+      [name-input {:name-input     @(r/cursor !state [:input-name])
+                   :update-name    update-input-name
+                   :surname-input  @(r/cursor !state [:input-surname])
+                   :update-surname update-input-surname}]]
+     [crud-buttons {:create create
+                    :update update-selected
+                    :delete delete-selected}]]))
