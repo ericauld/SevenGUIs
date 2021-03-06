@@ -1,10 +1,7 @@
 (ns sevenguis.core
   (:require
-    [reagent.core :as r]
     [reagent.dom :as d]
-    [clojure.string :as str]
     [sevenguis.timer :as timer]
-    [sevenguis.util :as util]
     [sevenguis.crud :as crud]
     [sevenguis.circle-drawer :as circle-drawer]
     [sevenguis.cells :as cells]
@@ -21,8 +18,8 @@
     [:li [flight-booker/flight-booker]]
     [:li [timer/timer {:min-seconds 5
                        :max-seconds 300}]]
-    [:li [crud/crud]]]])
-;    [circle-drawer/circle-drawer]
+    [:li [crud/crud]]
+    [:li [circle-drawer/circle-drawer]]]])
 ;    [cells/cells]]])
 
 (defn mount-root []

@@ -9,7 +9,8 @@
 (def initial-names [(->Name "Joni" "Mitchell")
                     (->Name "Trish" "Keenan")
                     (->Name "Laura" "Viers")
-                    (->Name "Cate" "Le Bon")])
+                    (->Name "Cate" "Le Bon")
+                    (->Name "Verity" "Susman")])
 
 (defn format-name [name] (str (:last name)
                               ", "
@@ -93,8 +94,8 @@
                                    (r/rswap! !state assoc-in [:names @!index-of-selected] nil)
                                    (reset! !index-of-selected nil)))
                get-name-from-input (fn []
-                                     (let [first-name (:input-name @!state) ;todo limit scope?
-                                           surname (:input-surname @!state)] ;todo limit scope?
+                                     (let [first-name (:input-name @!state)
+                                           surname (:input-surname @!state)]
                                        (when (and
                                                (string? first-name)
                                                (string? surname)
