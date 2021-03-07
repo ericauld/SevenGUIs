@@ -32,67 +32,29 @@
    [:button {:on-click undo} "Undo"]
    [:button {:on-click redo} "Redo"]])
 
-(defn context-menu [{options-and-listeners :options-and-listeners
-                     show?                 :show?
-                     hide                  :hide
-                     [left top]            :position
-                     with-cancel?          :with-cancel?
-                     cancel-listener       :cancel-listener}]
-  "If with-cancel? is a truthy value, a cancel option will be appended to the
-  context menu. By default it simply closes the menu, but if you want additional
-  actions taken upon cancel, you may include an cancel listener. You need not
-  close the menu in your cancel listener; this will be done automatically."
-  [:div.context-menu {:className (when show? "show")
-                      :style     {:left left
-                                  :top  top}}
-   (into [:ul]
-         (cond->
-           (mapv (fn [[option-name listener]]
-                   ^{:key option-name} [:li
-                                        {:on-click (fn on-option-click [click]
-                                                     (listener click)
-                                                     (hide))}
-                                        option-name])
-                 options-and-listeners)
-           with-cancel? (conj
-                          [:hr.context-menu-rule]
-                          ^{:key "Cancel"} [:li.context-menu-cancel
-                                            {:on-click (fn on-cancel-click [click]
-                                                         (when cancel-listener
-                                                           (cancel-listener click))
-                                                         (hide))}
-                                            "Cancel"])))])
-;todo put in util
-
-(defn change-diameter-dialog [{:keys [set-ref-func close selected-circle change-diameter]}]
+(defn change-diameter-dialog [{:keys [set-ref-func
+                                      close
+                                      selected-circle
+                                      update-diameter
+                                      active?]}]
   [:dialog {:ref set-ref-func}
    [:p (str "Adjust diameter of circle at ("
             (int (:center-x selected-circle))
             ", "
             (int (:center-y selected-circle))
             ")")]
-   [:input#diameter-adjuster {:type "range"}]
-   [:div.gui-line.button-line
-    [:button {:on-click close} "Done"]
-    [:button {:on-click close} "Cancel"]]])
-
-(defn change-diameter-dialog2 [{:keys [set-ref-func close selected-circle update-diameter]}]
-  [:dialog {:ref set-ref-func}
-   [:p (str "Adjust diameter of circle at ("
-            (int (:center-x selected-circle))
-            ", "
-            (int (:center-y selected-circle))
-            ")")]
-   [:div {:style {:position "relative"}}                    ;todo css
-    [util/range-with-bubble {:original-value (:radius selected-circle)
-                             :min            min-radius
-                             :max            max-radius
-                             :value-update   update-diameter
-                             :label          nil            ;todo label?
-                             :bubble-scale   112
-                             :bubble-shift   75
-                             :step           0.05
-                             :display-precision 2}]]
+   [:div
+    [util/range-with-bubble {:external-value      (when selected-circle
+                                                    (:radius selected-circle))
+                             :min                 min-radius
+                             :max                 max-radius
+                             :value-update        update-diameter
+                             :label               nil
+                             :bubble-scale        112
+                             :bubble-shift        10
+                             :step                0.05
+                             :display-precision   2
+                             :listen-for-updates? (not active?)}]]
 
    [:div.gui-line.button-line
     [:button {:on-click close} "Done"]
@@ -123,10 +85,18 @@
 (def undo (fn []))
 (def redo (fn []))
 (def !show-context-menu? (r/atom false))
-(def !context-menu-position (r/atom [100 100]))             ;todo make it start nil
+(def !context-menu-position (r/atom nil))
 (def !dialog (atom nil))
+(def !dialog-open? (r/atom false))
+(def close-dialog (fn [_click]
+                    (when-let [dialog @!dialog]
+                      (.close dialog))
+                    (reset! !dialog-open? false)))
+(def set-dialog-ref (fn [ref] (reset! !dialog ref)))
+(def update-diameter (fn []))
 
 (defn circle-drawer []
+  (r/with-let [])
   [:div#circle-drawer.gui {:ref (fn [ref] (reset! !gui ref))}
    [circle-drawer-buttons {:undo undo
                            :redo redo}]
@@ -136,8 +106,8 @@
        {:ref             (fn set-svg-ref [ref] (reset! !svg ref))
         :on-mouse-leave  (fn svg-on-mouse-leave [_]
                            (when-not @!show-context-menu?
-                             (r/rswap! !state assoc :mouse-location nil))) ;todo before I had when no modal or context here.
-        :on-mouse-move   (fn svg-on-mouse-move [mouse]      ;todo before I had when no modal or context here.
+                             (r/rswap! !state assoc :mouse-location nil)))
+        :on-mouse-move   (fn svg-on-mouse-move [mouse]
                            (when (and @!svg
                                       (not @!show-context-menu?))
                              (r/rswap! !state assoc :mouse-location (util/coords-rel @!svg mouse))))
@@ -161,20 +131,20 @@
                                              :stroke-width stroke-width}))
         (:circles @!state)))]                               ;todo reduce scope?
 
-   [context-menu {:options-and-listeners {"Adjust diameter..." (fn adjust-diameter-click [_click]
-                                                                 (when-let [dialog @!dialog]
-                                                                   (.showModal dialog)))}
-                  :position              @!context-menu-position
-                  :show?                 @!show-context-menu?
-                  :hide                  (fn hide-context-menu []
-                                           (reset! !show-context-menu? false))
-                  :with-cancel?          true
-                  :cancel-listener       (fn cancel-click [click])}]
-   [change-diameter-dialog2 {:set-ref-func    (fn [ref] (reset! !dialog ref))
-                             :close           (fn close-dialog [click]
-                                                (when-let [dialog @!dialog]
-                                                  (.close dialog)))
-                             :selected-circle (get-in @!state [:circles @!index-of-selected]) ;todo reduce scope?
-                             :update-diameter #()}]])
+   [util/context-menu {:options-and-listeners {"Adjust diameter..." (fn adjust-diameter-click [_click]
+                                                                      (when-let [dialog @!dialog]
+                                                                        (.showModal dialog)
+                                                                        (reset! !dialog-open? true)))}
+                       :position              @!context-menu-position
+                       :show?                 @!show-context-menu?
+                       :hide                  (fn hide-context-menu []
+                                                (reset! !show-context-menu? false))
+                       :with-cancel?          true
+                       :cancel-listener       (fn cancel-click [click])}]
+   [change-diameter-dialog {:set-ref-func    set-dialog-ref
+                            :close           close-dialog
+                            :selected-circle @(r/cursor !state [:circles @!index-of-selected])
+                            :update-diameter update-diameter
+                            :active?         @!dialog-open?}]])
 
 

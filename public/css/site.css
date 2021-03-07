@@ -162,6 +162,7 @@ button:not(#book-button) {
 
 .range-wrap {
     position: relative;
+    display: inline-block;
 }
 
 #duration {

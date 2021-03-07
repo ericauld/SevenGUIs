@@ -36,7 +36,38 @@
      [:p text]
      (when button-text [:button {:on-click confirm} button-text])]))
 
-(defn range-with-bubble [{:keys [original-value
+(defn context-menu [{options-and-listeners :options-and-listeners
+                     show?                 :show?
+                     hide                  :hide
+                     [left top]            :position
+                     with-cancel?          :with-cancel?
+                     cancel-listener       :cancel-listener}]
+  "If with-cancel? is a truthy value, a cancel option will be appended to the
+  context menu. By default it simply closes the menu, but if you want additional
+  actions taken upon cancel, you may include an cancel listener. You need not
+  close the menu in your cancel listener; this will be done automatically."
+  [:div.context-menu {:className (when show? "show")
+                      :style     {:left left
+                                  :top  top}}
+   (into [:ul]
+         (cond->
+           (mapv (fn [[option-name listener]]
+                   ^{:key option-name} [:li
+                                        {:on-click (fn on-option-click [click]
+                                                     (listener click)
+                                                     (hide))}
+                                        option-name])
+                 options-and-listeners)
+           with-cancel? (conj
+                          [:hr.context-menu-rule]
+                          ^{:key "Cancel"} [:li.context-menu-cancel
+                                            {:on-click (fn on-cancel-click [click]
+                                                         (when cancel-listener
+                                                           (cancel-listener click))
+                                                         (hide))}
+                                            "Cancel"])))])
+
+(defn range-with-bubble [{:keys [external-value
                                  min
                                  max
                                  value-update
@@ -44,10 +75,16 @@
                                  bubble-scale
                                  bubble-shift
                                  step
-                                 display-precision]}]
+                                 display-precision
+                                 listen-for-updates?]}]
   "Bubble scale and bubble shift are finicky constants to get the
-  bubble to follow the slider button closely"
-  (r/with-let [!value (r/atom original-value)
+  bubble to follow the slider button closely. External value can be
+  used to set the default value, or, if listen-for-updates? is true,
+  to have the value of the input change when external-value changes.
+  Simply setting the value to external-value and having value-update
+  update external-value would cause problems when the user adjusts
+  the range button"
+  (r/with-let [!value (r/atom external-value)
                !show-bubble? (r/atom false)
                !bubble (atom nil)
                slider-position (fn [] (/ (- @!value min) (- max min)))
@@ -59,14 +96,19 @@
                                                display-precision (.toFixed display-precision)
                                                true (str label)))
                                  (set! (.. bubble -style -left) (str bubble-shift "px"))))]
-    [:<>
-     [:input.range {:step          (if step step 1)
+    (when listen-for-updates?
+      (reset! !value external-value))
+    [:div.range-wrap
+     [:input.range {:step          (if step
+                                     step
+                                     1)
                     :type          "range"
-                    :value         @!value
+                    :value         (if @!value
+                                     @!value
+                                     "")
                     :min           min
                     :max           max
                     :on-input      (fn range-input [e]
-                                     (js/console.log "On input called") ;todo remove
                                      (let [new-user-input (get-event-value e)]
                                        (reset! !value new-user-input)
                                        (value-update new-user-input)

@@ -35,7 +35,9 @@
                             (reset! !ticking nil))
                reset-clock (fn []
                              (stop-clock)
-                             (reset! !elapsed 0))]
+                             (reset! !elapsed 0))
+               duration-update (fn [new-value]
+                                 (reset! !duration new-value))]
 
     [:div.timer.gui
      [:div.gui-line
@@ -44,16 +46,15 @@
        {:value (/ @!elapsed @!duration)}]]
      [:div.gui-line
       [:span (str (.toFixed @!elapsed n-decimal-places) "s")]]
-     [:div.gui-line {:style {:position "relative"}} ;todo css
+     [:div.gui-line
       [:span "Duration:"]
-      [util/range-with-bubble {:original-value min-seconds
+      [util/range-with-bubble {:external-value min-seconds
                                :min            min-seconds
                                :max            max-seconds
-                               :value-update   (fn duration-update [new-value]
-                                                 (reset! !duration new-value))
+                               :value-update   duration-update
                                :label          "s"
                                :bubble-scale   112
-                               :bubble-shift   93}]]
+                               :bubble-shift   10}]]
      [button-row {:start-clock start-clock
                   :stop-clock  stop-clock
                   :reset-clock reset-clock}]]
