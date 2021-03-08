@@ -145,6 +145,11 @@
     (set! (.-font context) font)
     (-> context (.measureText text) (.-width))))
 
+(defn get-suffix-left [text font]
+  (let [width (get-text-width3 text font)
+        offset 4]
+    (str (+ width offset ) "px")))
+
 (defn update-suffix-position3 [!suffix-element input font]
   (when @!suffix-element
     (let [width (get-text-width3 input font)
@@ -176,20 +181,21 @@
   (let [!focus (r/cursor !app-db [:focus])
         !focused? (r/track #(= scale @!focus))
         !master-value (r/cursor !app-db [:master-value])
+        !user-input (r/cursor !app-db [:user-input])
         !computed-value (r/track (fn [] (some->
                                           ((scale from-master) @!master-value)
                                           (.toFixed precision))))
+        !displayed-value (r/track (fn []
+                                    (if @!focused?
+                                      @!user-input
+                                      @!computed-value)))
         !suffix-element (atom nil)]
     [:div.input-with-suffix-wrapper
      [:input.input-with-suffix {:placeholder (-> scale name (str/capitalize))
-                                :value       (if @!focused?
-                                               @(r/cursor !app-db [:user-input])
-                                               @!computed-value)
+                                :value       @!displayed-value
                                 :on-change   (fn temperature-on-change [e]
                                                (let [new-input (.. e -target -value)]
-                                                 ;(when @!suffix-element ;todo why does this work?
-                                                 ;  (update-suffix-position3 !suffix-element new-input font))
-                                                 (r/rswap! !app-db assoc :user-input new-input)
+                                                 (reset! !user-input new-input)
                                                  (if (= new-input "")
                                                    (r/rswap! !app-db assoc :master-value nil)
                                                    (when-let [conversion (convert-num-str (scale ->master) new-input)]
@@ -200,12 +206,9 @@
                                 :on-blur     #(reset! !focus nil)}]
      [:span.suffix-element {:ref    (fn [ref]
                                       (reset! !suffix-element ref)
-                                      (js/console.log "Suffix ref set called")
-                                      (update-suffix-position3 !suffix-element
-                                                               (if @!focused?
-                                                                 @(r/cursor !app-db [:user-input])
-                                                                 @!computed-value) font))
-                            :hidden (not @!master-value)}
+                                      (js/console.log "Suffix ref set called")) ;todo remove
+                            :hidden (not @!master-value)
+                            :style  {:left @(r/track #(get-suffix-left @!displayed-value font))}}
       (scale suffix-unicode-symbol)]]))
 
 
