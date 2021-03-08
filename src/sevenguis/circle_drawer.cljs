@@ -86,6 +86,9 @@
 (def redo (fn []))
 (def !show-context-menu? (r/atom false))
 (def !context-menu-position (r/atom nil))
+(def hide-context-menu (fn []
+                         (reset! !show-context-menu? false)))
+(def cancel-click (fn [click])) ;todo maybe have it reset to previous
 (def !dialog (atom nil))
 (def !dialog-open? (r/atom false))
 (def close-dialog (fn [_click]
@@ -93,7 +96,11 @@
                       (.close dialog))
                     (reset! !dialog-open? false)))
 (def set-dialog-ref (fn [ref] (reset! !dialog ref)))
-(def update-diameter (fn []))
+(def update-diameter (fn [new-diameter-str]
+                       (r/rswap! !state
+                                 assoc-in
+                                 [:circles @!index-of-selected :radius]
+                                 (js/parseFloat new-diameter-str))))
 
 (defn circle-drawer []
   (r/with-let [])
@@ -108,6 +115,7 @@
                            (when-not @!show-context-menu?
                              (r/rswap! !state assoc :mouse-location nil)))
         :on-mouse-move   (fn svg-on-mouse-move [mouse]
+                           (js/console.log (str "Mouse move was called and dialog open was " @!dialog-open?))
                            (when (and @!svg
                                       (not @!show-context-menu?))
                              (r/rswap! !state assoc :mouse-location (util/coords-rel @!svg mouse))))
@@ -129,7 +137,7 @@
                                                              "transparent")
                                              :stroke       stroke-color
                                              :stroke-width stroke-width}))
-        (:circles @!state)))]                               ;todo reduce scope?
+        (:circles @!state)))]  ;todo reduce scope?
 
    [util/context-menu {:options-and-listeners {"Adjust diameter..." (fn adjust-diameter-click [_click]
                                                                       (when-let [dialog @!dialog]
@@ -137,10 +145,9 @@
                                                                         (reset! !dialog-open? true)))}
                        :position              @!context-menu-position
                        :show?                 @!show-context-menu?
-                       :hide                  (fn hide-context-menu []
-                                                (reset! !show-context-menu? false))
+                       :hide                  hide-context-menu
                        :with-cancel?          true
-                       :cancel-listener       (fn cancel-click [click])}]
+                       :cancel-listener       cancel-click}]
    [change-diameter-dialog {:set-ref-func    set-dialog-ref
                             :close           close-dialog
                             :selected-circle @(r/cursor !state [:circles @!index-of-selected])

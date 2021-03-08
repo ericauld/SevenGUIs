@@ -52,3 +52,194 @@
                                                                 ((scale from-celsius) v)
                                                                 (.toFixed v 2))))
               :update-temp                #(reset! !celsius-temp %)}]))))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(def canvas (atom nil))
+
+(defn get-text-width2 [text font]
+  (if-not @canvas
+    (reset! canvas (.createElement js/document "canvas")))
+  (let [context (.getContext @canvas "2d")]
+    (set! (.-font context) font)
+    (-> context (.measureText text) (.-width))))
+
+(defn update-suffix-position2 [suffix-element-atom input font]
+  (when @suffix-element-atom
+    (let [width (get-text-width2 input font)
+          offset 4]
+      (set! (-> @suffix-element-atom .-style .-left)
+            (str (+ width offset) "px")))))
+
+(defn input-with-suffix2 [{:keys [suffix-str
+                                  value
+                                  placeholder
+                                  value-update
+                                  font
+                                  on-focus
+                                  on-blur]} _props]
+  (r/with-let [input-element (atom nil)
+               suffix-element (atom nil)]
+    (update-suffix-position2 suffix-element value font)
+    [:div.input-with-suffix-wrapper
+     [:input.input-with-suffix {:ref         #(reset! input-element %)
+                                :placeholder placeholder
+                                :value       value
+                                :on-change   (fn [event]
+                                               (let [new-user-input (util/get-event-value event)]
+                                                 (value-update new-user-input)
+                                                 (if @suffix-element
+                                                   (update-suffix-position2 suffix-element new-user-input font))))
+                                :on-focus    on-focus
+                                :on-blur     on-blur}]
+     [:span.suffix-element
+      {:ref    (fn set-suffix-ref [ref]
+                 (reset! suffix-element ref)
+                 (update-suffix-position2 suffix-element value font))
+       :hidden (try
+                 (empty? value)
+                 (catch js/Error _e
+                   (println "You may have passed input with suffix an incorrect type (needs string).")))}
+      suffix-str]]))
+
+
+
+
+
+
+
+
+
+
+(def canvas2 (atom nil))
+
+(defn get-text-width3 [text font]
+  (if-not @canvas2
+    (reset! canvas2 (.createElement js/document "canvas")))
+  (let [context (.getContext @canvas2 "2d")]
+    (set! (.-font context) font)
+    (-> context (.measureText text) (.-width))))
+
+(defn update-suffix-position3 [!suffix-element input font]
+  (when @!suffix-element
+    (let [width (get-text-width3 input font)
+          offset 4]
+      (set! (-> @!suffix-element .-style .-left)
+            (str (+ width offset) "px")))))
+
+(def ->master {:fahrenheit (fn fahrenheit->celsius [fahrenheit-temp]
+                             (-> fahrenheit-temp (- 32) (* 5) (/ 9)))
+               :celsius    identity})
+(def from-master {:fahrenheit (fn celsius->fahrenheit [celsius-temp]
+                                (when celsius-temp
+                                  (-> celsius-temp (* 9) (/ 5) (+ 32))))
+                  :celsius    identity})
+
+(def precision 1)
+(def scales2 #{:fahrenheit :celsius})
+
+(defonce !app-db (r/atom {:master-value nil
+                          :user-input   nil
+                          :focus        nil}))
+
+(defn convert-num-str [converter input-str]
+  (let [parse-attempt (js/parseFloat input-str)]
+    (when-not (js/isNaN parse-attempt)
+      (-> parse-attempt converter))))
+
+(defn temperature-input2 [scale]
+  (let [!focus (r/cursor !app-db [:focus])
+        !focused? (r/track #(= scale @!focus))
+        !master-value (r/cursor !app-db [:master-value])
+        !computed-value (r/track (fn [] (some->
+                                          ((scale from-master) @!master-value)
+                                          (.toFixed precision))))
+        !suffix-element (atom nil)]
+    [:div.input-with-suffix-wrapper
+     [:input.input-with-suffix {:placeholder (-> scale name (str/capitalize))
+                                :value       (if @!focused?
+                                               @(r/cursor !app-db [:user-input])
+                                               @!computed-value)
+                                :on-change   (fn temperature-on-change [e]
+                                               (let [new-input (.. e -target -value)]
+                                                 ;(when @!suffix-element ;todo why does this work?
+                                                 ;  (update-suffix-position3 !suffix-element new-input font))
+                                                 (r/rswap! !app-db assoc :user-input new-input)
+                                                 (if (= new-input "")
+                                                   (r/rswap! !app-db assoc :master-value nil)
+                                                   (when-let [conversion (convert-num-str (scale ->master) new-input)]
+                                                     (reset! !master-value conversion)))))
+                                :on-focus    (fn [_e]
+                                               (reset! !focus scale)
+                                               (r/rswap! !app-db assoc :user-input @!computed-value))
+                                :on-blur     #(reset! !focus nil)}]
+     [:span.suffix-element {:ref    (fn [ref]
+                                      (reset! !suffix-element ref)
+                                      (js/console.log "Suffix ref set called")
+                                      (update-suffix-position3 !suffix-element
+                                                               (if @!focused?
+                                                                 @(r/cursor !app-db [:user-input])
+                                                                 @!computed-value) font))
+                            :hidden (not @!master-value)}
+      (scale suffix-unicode-symbol)]]))
+
+
+(defn temperature-converter2 []
+  [:div.temperature-converter.gui
+   [temperature-input2 :fahrenheit]
+   [temperature-input2 :celsius]])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
