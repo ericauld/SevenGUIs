@@ -16,7 +16,8 @@
 
 (def suffix-unicode-symbol {:fahrenheit \u2109 :celsius \u2103})
 
-(def font "21.5px Roboto")
+;(def font "lighter largest 'Roboto', sans-serif") ;todo remove
+(def font "20.5px Roboto")
 
 (defn temperature-input [{:keys [scale externally-set-temperature update-temp]}]
   (r/with-let [!input (r/atom nil)
@@ -147,8 +148,8 @@
 
 (defn get-suffix-left [text font]
   (let [width (get-text-width3 text font)
-        offset 4]
-    (str (+ width offset ) "px")))
+        offset 6]
+    (str (+ width offset) "px")))
 
 (defn update-suffix-position3 [!suffix-element input font]
   (when @!suffix-element
@@ -205,19 +206,74 @@
                                                (r/rswap! !app-db assoc :user-input @!computed-value))
                                 :on-blur     #(reset! !focus nil)}]
      [:span.suffix-element {:ref    (fn [ref]
-                                      (reset! !suffix-element ref)
-                                      (js/console.log "Suffix ref set called")) ;todo remove
+                                      (reset! !suffix-element ref))
                             :hidden (not @!master-value)
                             :style  {:left @(r/track #(get-suffix-left @!displayed-value font))}}
       (scale suffix-unicode-symbol)]]))
 
 
+
+
+
+
+
+
+
+(defn input-with-suffix3 [{:keys [!value
+                                  value-update
+                                  placeholder
+                                  hide-suffix?
+                                  font
+                                  suffix]}]
+  (r/with-let [!suffix-element (atom nil)]
+    [:div.input-with-suffix-wrapper
+     [:input.input-with-suffix {:value       @!value
+                                :on-change   (fn input-with-suffix-on-change [e]
+                                               (js/console.log (str "Input change called on " (.. e -target -value)))
+                                               (value-update (.. e -target -value)))
+                                :placeholder placeholder}]
+     [:span.suffix-element {:ref    (fn set-suffix-ref [ref] (reset! !suffix-element ref))
+                            :hidden hide-suffix?
+                            :style  {:left @(r/track #(get-suffix-left @!value font))}}
+      suffix]]))
+
+;todo does on-focus work for a parent element as well? Should, right?
+
+(defn temperature-input3 [scale]
+  (r/with-let [!focus (r/cursor !app-db [:focus])
+               !focused? (r/track #(= scale @!focus))
+               !master-value (r/cursor !app-db [:master-value])
+               !user-input (r/cursor !app-db [:user-input])
+               !computed-value (r/track (fn [] (some->
+                                                 ((scale from-master) @!master-value)
+                                                 (.toFixed precision))))
+               !displayed-value (r/track (fn []
+                                           (if @!focused?
+                                             @!user-input
+                                             @!computed-value)))
+               update (fn [new-input]
+                        (reset! !user-input new-input)
+                        (if (= new-input "")
+                          (reset! !master-value nil)
+                          (when-let [conversion (convert-num-str (scale ->master) new-input)]
+                            (reset! !master-value conversion))))]
+    [:div {:style    {:display "inline"}
+           :on-focus (fn temperature-input-on-focus [_]
+                       (reset! !user-input @!computed-value)
+                       (reset! !focus scale))
+           :on-blur  (fn temperature-input-on-blur []
+                       (reset! !focus nil))}
+     [input-with-suffix3 {:!value       !displayed-value
+                          :value-update update
+                          :placeholder  (-> scale name (str/capitalize))
+                          :suffix       (scale suffix-unicode-symbol)
+                          :hide-suffix? (not @!master-value)
+                          :font         font}]]))
+
 (defn temperature-converter2 []
   [:div.temperature-converter.gui
-   [temperature-input2 :fahrenheit]
-   [temperature-input2 :celsius]])
-
-
+   [temperature-input3 :fahrenheit]
+   [temperature-input3 :celsius]])
 
 
 
