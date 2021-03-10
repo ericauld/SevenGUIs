@@ -41,11 +41,11 @@
                                            (if @!focused?
                                              @!user-input
                                              @!computed-value)))
-               update (fn [new-input]
-                        (reset! !user-input new-input)
-                        (if (= new-input "")
+               update (fn [new-user-input]
+                        (reset! !user-input new-user-input)
+                        (if (= new-user-input "")
                           (reset! !master-value nil)
-                          (when-let [conversion (convert-num-str (scale ->master) new-input)]
+                          (when-let [conversion (convert-num-str (scale ->master) new-user-input)]
                             (reset! !master-value conversion))))]
     [:div {:style    {:display "inline"}
            :on-focus (fn temperature-input-on-focus [_]
@@ -61,6 +61,6 @@
                               :font         font}]]))
 
 (defn temperature-converter []
-  [:div.temperature-converter.gui
-   [temperature-input :fahrenheit]
-   [temperature-input :celsius]])
+  (into [:div.temperature-converter.gui]
+        (for [scale scales]
+          [temperature-input scale])))
