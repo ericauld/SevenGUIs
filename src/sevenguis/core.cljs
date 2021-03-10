@@ -14,7 +14,7 @@
    [:h1 [:a#seven-guis-link {:href "https://eugenkiss.github.io/7guis/"} "Seven GUIs"] " in Reagent"]
    [:ol
     [:li [counter/counter]]
-    [:li [temperature-converter/temperature-converter2]]]])
+    [:li [temperature-converter/temperature-converter]]]])
 ;    [:li [flight-booker/flight-booker]]
 ;    [:li [timer/timer {:min-seconds 5
 ;                       :max-seconds 300}]]]])

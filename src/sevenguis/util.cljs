@@ -131,40 +131,23 @@
     (set! (.-font context) font)
     (-> context (.measureText text) (.-width))))
 
-(defn update-suffix-position [suffix-element-atom input font]
-  (when @suffix-element-atom
-    (let [width (get-text-width input font)
-          offset 4]
-      (set! (-> @suffix-element-atom .-style .-left)
-            (str (+ width offset) "px")))))
+(defn get-suffix-left [text font]
+  (let [width (get-text-width text font)
+        offset 6]
+    (str (+ width offset) "px")))
 
-(defn input-with-suffix [{:keys [suffix-str
-                                 value
-                                 placeholder
+(defn input-with-suffix [{:keys [!value ;todo move to util
                                  value-update
+                                 placeholder
+                                 hide-suffix?
                                  font
-                                 on-focus
-                                 on-blur]} _props]
-  (r/with-let [input-element (atom nil)
-               suffix-element (atom nil)]
-    (update-suffix-position suffix-element value font)
+                                 suffix]}]
+  (r/with-let [!suffix-element (atom nil)]
     [:div.input-with-suffix-wrapper
-     [:input.input-with-suffix {:ref         #(reset! input-element %)
-                                :placeholder placeholder
-                                :value       value
-                                :on-change   (fn [event]
-                                               (let [new-user-input (get-event-value event)]
-                                                 (value-update new-user-input)
-                                                 (if @suffix-element
-                                                   (update-suffix-position suffix-element new-user-input font))))
-                                :on-focus    on-focus
-                                :on-blur     on-blur}]
-     [:span.suffix-element
-      {:ref    (fn set-suffix-ref [ref]
-                 (reset! suffix-element ref)
-                 (update-suffix-position suffix-element value font))
-       :hidden (try
-                 (empty? value)
-                 (catch js/Error _e
-                   (println "You may have passed input with suffix an incorrect type (needs string).")))}
-      suffix-str]]))
+     [:input.input-with-suffix {:value       @!value
+                                :on-change   #(value-update (.. % -target -value))
+                                :placeholder placeholder}]
+     [:span.suffix-element {:ref    #(reset! !suffix-element %)
+                            :hidden hide-suffix?
+                            :style  {:left @(r/track #(get-suffix-left @!value font))}}
+      suffix]]))
