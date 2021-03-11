@@ -24,23 +24,25 @@
                           :user-input   nil
                           :focus        nil}))
 
+(def !focus (r/cursor !app-db [:focus]))
+
+(def !master-value (r/cursor !app-db [:master-value]))
+
+(def !user-input (r/cursor !app-db [:user-input]))
+
 (defn convert-num-str [converter input-str]
   (let [parse-attempt (js/parseFloat input-str)]
     (when-not (js/isNaN parse-attempt)
       (-> parse-attempt converter))))
 
 (defn temperature-input [scale]
-  (r/with-let [!focus (r/cursor !app-db [:focus])
-               !focused? (r/track #(= scale @!focus))
-               !master-value (r/cursor !app-db [:master-value])
-               !user-input (r/cursor !app-db [:user-input])
-               !computed-value (r/track (fn [] (some->
-                                                 ((scale from-master) @!master-value)
-                                                 (.toFixed precision))))
-               !displayed-value (r/track (fn []
-                                           (if @!focused?
-                                             @!user-input
-                                             @!computed-value)))
+  (r/with-let [!focused? (r/track #(= @!focus scale))
+               !computed-value (r/track #(some->
+                                           ((scale from-master) @!master-value)
+                                           (.toFixed precision)))
+               !displayed-value (r/track #(if @!focused?
+                                            @!user-input
+                                            @!computed-value))
                update (fn [new-user-input]
                         (reset! !user-input new-user-input)
                         (if (= new-user-input "")
@@ -53,7 +55,7 @@
                        (reset! !focus scale))
            :on-blur  (fn temperature-input-on-blur []
                        (reset! !focus nil))}
-     [util/input-with-suffix {:!value        !displayed-value
+     [util/input-with-suffix {:!value       !displayed-value
                               :value-update update
                               :placeholder  (-> scale name (str/capitalize))
                               :suffix       (scale suffix-unicode-symbol)

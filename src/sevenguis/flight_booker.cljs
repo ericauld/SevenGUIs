@@ -1,132 +1,3 @@
-
-
-;(defn flight-input [{:keys [update-date disabled?]}]
-;  (r/with-let [!user-input (r/atom nil)
-;               no-input? (fn []
-;                           (let [input @!user-input]
-;                             (cond
-;                               (nil? input) true
-;                               (string? input) (empty? input)
-;                               :else false)))
-;               in-date-format? (fn [] (as-> @!user-input v
-;                                            ((fnil #(re-matches date-pattern %) "") v)
-;                                            (some? v)))
-;               parse-input (fn []
-;                             (when (in-date-format?)
-;                               (let [date-keys date-notation-order
-;                                     date-values (->> (str/split @!user-input date-separator)
-;                                                      (map js/parseInt))
-;                                     date (->> (interleave date-keys date-values)
-;                                               (apply hash-map)
-;                                               (map->Date))]
-;                                 (when (actual-date? date)
-;                                   date))))]
-;    [:input {:className   (when-not (or (no-input?)
-;                                        (parse-input))
-;                            "bad-input")
-;             :placeholder (when-not disabled? date-format)
-;             :value       @!user-input
-;             :on-change   (fn update-input [e]
-;                            (let [new-user-input (util/get-event-value e)]
-;                              (reset! !user-input new-user-input)
-;                              (update-date (parse-input))))
-;             :disabled    disabled?}]))
-
-;(def success-message "Congrats! You're all set!")
-;(def date-in-past-message (str "We regret to inform you that one of the days you "
-;                               "have selected is in the past."))
-;(def out-of-order-message (str "Unfortunately, it is impossible to arrive before you depart."))
-
-;(defn flight-booker []
-;  (r/with-let [!flight-type (r/atom "One-way")
-;               !departure (r/atom nil)
-;               !return (r/atom nil)
-;               !modal (atom nil)
-;               !modal-message (r/atom nil)
-;               book-button-disabled? #(not (or (and (= @!flight-type "One-way")
-;                                                    @!departure)
-;                                               (and @!departure
-;                                                    @!return)))
-;               set-modal-message #(reset!
-;                                    !modal-message
-;                                    (cond
-;                                      (and (= @!flight-type "One-way")
-;                                           (already-happened? @!departure)) date-in-past-message
-;                                      (and (= @!flight-type "Round-trip")
-;                                           (or (already-happened? @!departure)
-;                                               (already-happened? @!return))) date-in-past-message
-;                                      (and (= @!flight-type "Round-trip")
-;                                           (not (-> @!departure
-;                                                    (is-before-or-same-as @!return)))) out-of-order-message
-;                                      :else success-message))]
-;    [:div.gui.flight-booker
-;     [:select {:on-change (fn change-select [e]
-;                            (->> e
-;                                 util/get-event-value
-;                                 (reset! !flight-type)))}
-;      [:option {:value "One-way"} "One-way flight"]
-;      [:option {:value "Round-trip"} "Round-trip flight"]]
-;     [flight-input {:update-date (fn update-date [date]
-;                                   (reset! !departure date))}]
-;     [flight-input {:update-date (fn update-date [date]
-;                                   (reset! !return date))
-;                    :disabled?   (= @!flight-type "One-way")}]
-;     [:button#book-button {:on-click (fn on-click [_]
-;                                       (when-let [modal @!modal]
-;                                         (set-modal-message)
-;                                         (.showModal modal)))
-;                           :disabled (book-button-disabled?)}
-;      "Book!"]
-;     [util/modal {:text         @!modal-message
-;                  :set-ref-func (fn set-modal-ref [ref]
-;                                  (reset! !modal ref))
-;                  :listener     nil
-;                  :close-modal  (fn close-modal []
-;                                  (when-let [modal @!modal]
-;                                    (.close modal)))
-;                  :button-text  "OK"}]]))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-;parse-input (fn []
-;              (when (in-date-format?)
-;                (let [date-keys date-notation-order
-;                      date-values (->> (str/split @!user-input date-separator)
-;                                       (map js/parseInt))
-;                      date (->> (interleave date-keys date-values)
-;                                (apply hash-map)
-;                                (map->Date))]
-;                  (when (actual-date? date)
-;                    date))))
-
-
-
-
-
-
-
-
 (ns sevenguis.flight-booker
   (:require
     [reagent.core :as r]
@@ -134,10 +5,12 @@
     [sevenguis.util :as util]))
 
 (def date-separator \/)
+
 (def notation {:month "mm"
                :day   "dd"
                :year  "yyyy"})
 (def date-notation-order [:month :day :year])
+
 (def date-format (str/join date-separator
                            (for [time-period date-notation-order]
                              (time-period notation))))
@@ -223,7 +96,12 @@
 
 (def !return-input (r/cursor !app-db [:return-input]))
 
-(defn success-state2 [departure-input return-input one-way?]
+(def success-states {:not-ready
+                     :date-in-the-past
+                     :dates-out-of-order
+                     :success})
+
+(defn success-state [departure-input return-input one-way?]
   (let [departure-date-attempt (str->Date departure-input)
         return-date-attempt (str->Date return-input)]
     (cond
@@ -239,9 +117,9 @@
               (not (is-before-or-same-as departure-date-attempt return-date-attempt)) :dates-out-of-order
               :else :success))))
 
-(def !success-state2 (r/track #(success-state2 @!departure-input @!return-input @!one-way?)))
+(def !success-state (r/track #(success-state @!departure-input @!return-input @!one-way?)))
 
-(def message {:not-ready          ""
+(def message {:not-ready          nil
               :date-in-the-past   (str "We regret to inform you that at least one of the dates "
                                        "you have chosen is in the past.")
               :dates-out-of-order "Unfortunately, it is impossible to return before you depart."
@@ -249,7 +127,7 @@
 
 (def !modal (atom nil))
 
-(defn modal2 [{:keys [!modal-element text button-text]}]
+(defn modal [{:keys [!modal-element text button-text]}]
   (let [times-symbol \u00D7]
     [:dialog {:ref #(reset! !modal-element %)}
      [:div.dialog-close-wrapper
@@ -277,9 +155,9 @@
             :disabled    @!one-way?}]
    [:button#book-button {:on-click #(when-let [modal @!modal]
                                       (.showModal modal))
-                         :disabled (= @!success-state2 :not-ready)}
+                         :disabled (= @!success-state :not-ready)}
     "Book!"]
-   [modal2 {:!modal-element !modal
-            :text           (@!success-state2 message)}]])
+   [modal {:!modal-element !modal
+           :text          (@!success-state message)}]])
 
 
