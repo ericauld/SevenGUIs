@@ -15,6 +15,7 @@
 (def ->master {:fahrenheit (fn fahrenheit->celsius [fahrenheit-temp]
                              (-> fahrenheit-temp (- 32) (* 5) (/ 9)))
                :celsius    identity})
+
 (def from-master {:fahrenheit (fn celsius->fahrenheit [celsius-temp]
                                 (when celsius-temp
                                   (-> celsius-temp (* 9) (/ 5) (+ 32))))
@@ -33,7 +34,14 @@
 (defn convert-num-str [converter input-str]
   (let [parse-attempt (js/parseFloat input-str)]
     (when-not (js/isNaN parse-attempt)
-      (-> parse-attempt converter))))
+      (converter parse-attempt))))
+
+(defn update-temp [scale new-user-input]
+  (reset! !user-input new-user-input)
+  (if (= new-user-input "")
+    (reset! !master-value nil)
+    (when-let [conversion (convert-num-str (scale ->master) new-user-input)]
+      (reset! !master-value conversion))))
 
 (defn temperature-input [scale]
   (r/with-let [!focused? (r/track #(= @!focus scale))
@@ -42,13 +50,7 @@
                                            (.toFixed precision)))
                !displayed-value (r/track #(if @!focused?
                                             @!user-input
-                                            @!computed-value))
-               update (fn [new-user-input]
-                        (reset! !user-input new-user-input)
-                        (if (= new-user-input "")
-                          (reset! !master-value nil)
-                          (when-let [conversion (convert-num-str (scale ->master) new-user-input)]
-                            (reset! !master-value conversion))))]
+                                            @!computed-value))]
     [:div {:style    {:display "inline"}
            :on-focus (fn temperature-input-on-focus [_]
                        (reset! !user-input @!computed-value)
@@ -56,7 +58,7 @@
            :on-blur  (fn temperature-input-on-blur []
                        (reset! !focus nil))}
      [util/input-with-suffix {:!value       !displayed-value
-                              :value-update update
+                              :value-update (partial update-temp scale)
                               :placeholder  (-> scale name (str/capitalize))
                               :suffix       (scale suffix-unicode-symbol)
                               :hide-suffix? (not @!master-value)

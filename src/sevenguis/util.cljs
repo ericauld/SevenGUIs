@@ -67,60 +67,39 @@
                                                          (hide))}
                                             "Cancel"])))])
 
-(defn range-with-bubble [{:keys [external-value
+(defn get-bubble-left [slider-position bubble-scale bubble-shift]
+  (let [left-position (+ (* slider-position bubble-scale) bubble-shift)]
+    (str left-position "px")))
+
+(defn range-with-bubble [{:keys [!value
                                  min
                                  max
-                                 value-update
-                                 label
                                  bubble-scale
                                  bubble-shift
-                                 step
                                  display-precision
-                                 listen-for-updates?]}]
+                                 label]}]
   "Bubble scale and bubble shift are finicky constants to get the
-  bubble to follow the slider button closely. External value can be
-  used to set the default value, or, if listen-for-updates? is true,
-  to have the value of the input change when external-value changes.
-  Simply setting the value to external-value and having value-update
-  update external-value would cause problems when the user adjusts
-  the range button"
-  (r/with-let [!value (r/atom external-value)
+  bubble to follow the slider button closely."
+  (r/with-let [!bubble (atom nil)
                !show-bubble? (r/atom false)
-               !bubble (atom nil)
-               slider-position (fn [] (/ (- @!value min) (- max min)))
-               reset-bubble #(when-let [bubble @!bubble]
-                               (let [bubble-shift (+ (* (slider-position) bubble-scale) bubble-shift)]
-                                 (set! (.-innerHTML bubble)
-                                       (cond-> @!value
-                                               display-precision js/parseFloat
-                                               display-precision (.toFixed display-precision)
-                                               true (str label)))
-                                 (set! (.. bubble -style -left) (str bubble-shift "px"))))]
-    (when listen-for-updates?
-      (reset! !value external-value))
+               !slider-position (r/track #(/ (- @!value min) (- max min)))
+               !bubble-left (r/track #(get-bubble-left @!slider-position bubble-scale bubble-shift))]
     [:div.range-wrap
-     [:input.range {:step          (if step
-                                     step
-                                     1)
+     [:input.range {:step          1
                     :type          "range"
-                    :value         (if @!value
-                                     @!value
-                                     "")
+                    :value         @!value
                     :min           min
                     :max           max
-                    :on-input      (fn range-input [e]
-                                     (let [new-user-input (get-event-value e)]
-                                       (reset! !value new-user-input)
-                                       (value-update new-user-input)
-                                       (reset-bubble)))
-                    :on-mouse-down (fn on-mouse-down []
-                                     (reset-bubble)
-                                     (reset! !show-bubble? true))
-                    :on-mouse-up   (fn on-mouse-up []
-                                     (reset! !show-bubble? false))}]
-     [:output.bubble {:hidden (not @!show-bubble?)
-                      :ref    (fn set-bubble-ref [ref]
-                                (reset! !bubble ref))}]]))
+                    :on-input      (fn range-on-input [e] (reset! !value (js/parseFloat (.. e -target -value))))
+                    :on-mouse-down (fn range-mouse-down [_] (reset! !show-bubble? true))
+                    :on-mouse-up   (fn range-mouse-up [_] (reset! !show-bubble? false))}]
+     [:output.bubble {:ref    (fn set-bubble-ref [ref] (reset! !bubble ref))
+                      :hidden (not @!show-bubble?)
+                      :style  {:left @!bubble-left}}
+      (cond-> @!value
+              display-precision js/parseFloat
+              display-precision (.toFixed display-precision)
+              true (str label))]]))
 
 (def canvas (atom nil))
 
@@ -151,3 +130,27 @@
                             :hidden hide-suffix?
                             :style  {:left @(r/track #(get-suffix-left @!value font))}}
       suffix]]))
+
+
+(defn filtered-list [{:keys [item->str
+                             !items
+                             !keep?
+                             !focus
+                             size
+                             !selected-item-index]}]
+  [:div
+   (into [:select#name-list {:size      size
+                             :on-focus  (fn name-list-on-focus [_]
+                                          (reset! !focus :name-list))
+                             :on-blur   (fn name-list-on-blur [_]
+                                          (reset! !focus nil))
+                             :on-change (fn select-on-change [e]
+                                          (reset! !selected-item-index (as-> e v
+                                                                             (.. v -target -value)
+                                                                             (js/parseInt v))))}]
+         (keep-indexed
+           (fn build-option-element [index item]
+             (when (and item (@!keep? item))
+               ^{:key (str index)}
+               [:option.crud-name {:value (str index)} (item->str item)]))
+           @!items))])
