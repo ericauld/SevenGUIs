@@ -23,9 +23,13 @@
 
 (def default-radius 25)
 
-(def min-radius 5)
+(def min-radius 1)
 
-(def max-radius 70)
+(def max-radius 240)
+
+(def bubble-scale 112)
+
+(def bubble-shift 10)
 
 (defn circle-drawer-buttons [{:keys [undo redo]}]
   [:div.gui-line.button-line
@@ -88,7 +92,7 @@
 (def !context-menu-position (r/atom nil))
 (def hide-context-menu (fn []
                          (reset! !show-context-menu? false)))
-(def cancel-click (fn [click])) ;todo maybe have it reset to previous
+(def cancel-click (fn [click]))                             ;todo maybe have it reset to previous
 (def !dialog (atom nil))
 (def !dialog-open? (r/atom false))
 (def close-dialog (fn [_click]
@@ -103,7 +107,6 @@
                                  (js/parseFloat new-diameter-str))))
 
 (defn circle-drawer []
-  (r/with-let [])
   [:div#circle-drawer.gui {:ref (fn [ref] (reset! !gui ref))}
    [circle-drawer-buttons {:undo undo
                            :redo redo}]
@@ -137,7 +140,7 @@
                                                              "transparent")
                                              :stroke       stroke-color
                                              :stroke-width stroke-width}))
-        (:circles @!state)))]  ;todo reduce scope?
+        (:circles @!state)))]                               ;todo reduce scope?
 
    [util/context-menu {:options-and-listeners {"Adjust diameter..." (fn adjust-diameter-click [_click]
                                                                       (when-let [dialog @!dialog]
@@ -154,4 +157,266 @@
                             :update-diameter update-diameter
                             :active?         @!dialog-open?}]])
 
+(defn old-context-menu [{options-and-listeners :options-and-listeners
+                         show?                 :show?
+                         hide                  :hide
+                         [left top]            :position
+                         with-cancel?          :with-cancel?
+                         cancel-listener       :cancel-listener}]
+  "If with-cancel? is a truthy value, a cancel option will be appended to the
+  context menu. By default it simply closes the menu, but if you want additional
+  actions taken upon cancel, you may include an cancel listener. You need not
+  close the menu in your cancel listener; this will be done automatically."
+  [:div.context-menu {:className (when show? "show")
+                      :style     {:left left
+                                  :top  top}}
+   (into [:ul]
+         (cond->
+           (mapv (fn [[option-name listener]]
+                   ^{:key option-name} [:li
+                                        {:on-click (fn on-option-click [click]
+                                                     (listener click)
+                                                     (hide))}
+                                        option-name])
+                 options-and-listeners)
+           with-cancel? (conj
+                          [:hr.context-menu-rule]
+                          ^{:key "Cancel"} [:li.context-menu-cancel
+                                            {:on-click (fn on-cancel-click [click]
+                                                         (when cancel-listener
+                                                           (cancel-listener click))
+                                                         (hide))}
+                                            "Cancel"])))])
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(def radius-step 0.05)
+(def display-precision 2)
+
+(def circle-settings {:stroke       "#6e6e6e"
+                      :stroke-width 1.25})
+(def fill-color-of-selected2 "#b5b3b3")
+
+(defprotocol Drawable2
+  (draw [this]
+        [this settings]))
+
+(defrecord Circle3 [radius center-position]
+  Drawable2
+  (draw [_this]
+    (let [[x y] center-position]
+      [:circle {:r  radius
+                :cx x
+                :cy y}]))
+  (draw [_this settings]
+    (let [[x y] center-position]
+      [:circle (-> {:r  radius
+                    :cx x
+                    :cy y}
+                   (merge settings))])))
+
+(defonce !app-db (r/atom {:circles                      []
+                          :modal-menu-visible?          nil
+                          :context-menu-visible?        nil
+                          :mouse-position-rel-svg       nil
+                          :context-menu-position        nil
+                          :snapshots                    []
+                          :cached-selected-circle-index nil}))
+
+(def !circles (r/cursor !app-db [:circles]))
+
+(def !mouse-position (r/cursor !app-db [:mouse-position-rel-svg]))
+
+(def !context-menu-position2 (r/cursor !app-db [:context-menu-position]))
+
+(def !context-visible? (r/cursor !app-db [:context-menu-visible?]))
+
+(def !modal-visible? (r/cursor !app-db [:modal-menu-visible?]))
+
+(def !cached-selected (r/cursor !app-db [:cached-selected-circle-index]))
+
+(defn index-of-selected [circles mouse-position]
+  (let [circles-with-indices-and-square-distances
+        (map-indexed
+          (fn [index circle]
+            (let [sqr-distance-2d (fn [[x1 y1] [x2 y2]]
+                                    (let [[d1 d2] (mapv - [x2 y2] [x1 y1])]
+                                      (+
+                                        (js/Math.pow d1 2)
+                                        (js/Math.pow d2 2))))]
+              {:index               index
+               :sqr-radius          (-> circle :radius (js/Math.pow 2))
+               :sqr-dist-from-mouse (sqr-distance-2d mouse-position (:center-position circle))}))
+          circles)
+        circles-surrounding-mouse (filter #(< (:sqr-dist-from-mouse %)
+                                              (:sqr-radius %))
+                                          circles-with-indices-and-square-distances)
+        index-of-closest-surrounding
+        (some->> circles-surrounding-mouse (apply min-key :sqr-dist-from-mouse) :index)]
+    index-of-closest-surrounding))
+
+(def !index-of-selected2 (r/track #(if-not (or @!context-visible? @!modal-visible?)
+                                     (index-of-selected @!circles @!mouse-position)
+                                     @!cached-selected)))
+
+(defn get-set-selected-circle
+  ([_k] (when @!index-of-selected2
+          (nth @!circles @!index-of-selected2)))
+  ([_k v] (when @!index-of-selected2
+            (r/rswap! !circles assoc @!index-of-selected2 v))))
+
+(def !selected-circle (r/cursor get-set-selected-circle []))
+
+(def !modal-ref (atom nil))
+
+(def !svg-ref (atom nil))
+
+(def !gui-ref (atom nil))
+
+(defn get-mouse-position-rel-svg [e])
+
+(defn render-circles
+  ([circles index-of-selected]
+   (render-circles circles index-of-selected nil))
+  ([circles index-of-selected settings]
+   (map-indexed (fn [index circle]
+                  (let [settings-with-fill
+                        (merge settings
+                               {:fill (if (= index index-of-selected)
+                                        fill-color-of-selected2
+                                        "transparent")})]
+                    (draw circle settings-with-fill)))
+                circles)))
+
+(def !render-circles
+  (r/track #(render-circles @!circles
+                            @!index-of-selected2
+                            circle-settings)))
+
+(defn context-menu2 []
+  [:div.context-menu {:className (when @!context-visible? "show")
+                      :style     {:top  (some-> @!context-menu-position2 (nth 1))
+                                  :left (some-> @!context-menu-position2 (nth 0))}}
+   [:ul
+    [:li {:on-click (fn on-click-context-menu [_]
+                      (when-let [modal @!modal-ref]
+                        (reset! !context-visible? false)
+                        (reset! !modal-visible? true)
+                        (.showModal modal)))}
+     "Adjust diameter..."]
+    [:hr.context-menu-rule]
+    [:li.context-menu-cancel {:on-click (fn on-click-cancel [_]
+                                          (reset! !context-visible? false))}
+     "Cancel"]]])
+
+
+(defn change-diameter-dialog3 []
+  [:dialog {:ref (fn set-modal-ref [ref] (reset! !modal-ref ref))}
+   (let [[x y] (when @!selected-circle
+                 (->> @!selected-circle :center-position (mapv js/Math.round)))]
+     [:p (str "Adjust diameter of circle at (" x "," y ")")])
+   [:div]
+   [util/range-with-bubble {:!value            (r/cursor !selected-circle [:radius])
+                            :min               min-radius
+                            :max               max-radius
+                            :bubble-scale      bubble-scale
+                            :bubble-shift      bubble-shift
+                            :display-precision nil
+                            :label             nil}]
+
+   [:div.gui-line.button-line
+    [:button {:on-click (fn on-click-modal-done [_]
+                          (when-let [modal @!modal-ref]
+                            (reset! !modal-visible? false)
+                            (.close modal)))} "Done"]
+    [:button {:on-click (fn on-click-modal-cancel [_]
+                          (when-let [modal @!modal-ref]
+                            (reset! !modal-visible? false)  ;todo this should revert to before rad changed
+                            (.close modal)))} "Cancel"]]])
+
+(defn circle-canvas []
+  [:div.gui-line
+   (into
+     [:svg#circle-svg
+      {:ref             (fn set-svg-ref [ref] (reset! !svg-ref ref))
+       :on-mouse-leave  (fn svg-mouse-leave [_] (reset! !mouse-position nil))
+       :on-mouse-move   (fn svg-mouse-move [e] (reset! !mouse-position (util/coords-rel !svg-ref e)))
+       :on-context-menu #(when @!index-of-selected2
+                           (.preventDefault %)
+                           (reset! !cached-selected @!index-of-selected2)
+                           (reset! !context-menu-position2 (util/coords-rel !gui-ref %))
+                           (reset! !context-visible? true))
+       :on-click        (fn svg-on-click [_]
+                          (when-not @!context-visible?      ;todo maybe modal also
+                            (r/rswap! !circles conj (->Circle3 default-radius
+                                                               @!mouse-position))))}]
+     @!render-circles)])
+
+(defn circle-drawer2 []
+  [:div#circle-drawer.gui {:ref #(reset! !gui-ref %)}
+   [circle-drawer-buttons {:undo nil
+                           :redo nil}]
+   [circle-canvas]
+   [context-menu2 {:options-and-listeners nil
+                   :position              nil
+                   :show?                 nil
+                   :hide                  nil
+                   :with-cancel?          nil
+                   :cancel-listener       nil}]
+   [change-diameter-dialog3 {:set-ref-func    nil
+                             :close           nil
+                             :selected-circle nil
+                             :update-diameter nil
+                             :active?         nil}]])

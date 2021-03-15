@@ -17,8 +17,8 @@
     [:li [temperature-converter/temperature-converter]]
     [:li [flight-booker/flight-booker2]]
     [:li [timer/timer]]
-    [:li [crud/crud]]]])
-;    [:li [circle-drawer/circle-drawer]]
+    [:li [crud/crud]]
+    [:li [circle-drawer/circle-drawer2]]]])
 ;    [cells/cells]]])
 
 (defn mount-root []

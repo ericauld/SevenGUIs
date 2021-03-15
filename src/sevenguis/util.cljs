@@ -9,11 +9,12 @@
       (js/Math.pow d1 2)
       (js/Math.pow d2 2))))
 
-(defn coords-rel [element event]
-  (let [rect (.getBoundingClientRect element)]
-    (mapv -
-          [(.-clientX event) (.-clientY event)]
-          [(.-left rect) (.-top rect)])))
+(defn coords-rel [!element-ref event]
+  (when-let [element @!element-ref]
+    (let [rect (.getBoundingClientRect element)]
+      (mapv -
+            [(.-clientX event) (.-clientY event)]
+            [(.-left rect) (.-top rect)]))))
 
 (defn within [tolerance float1 float2]
   (< (js/Math.abs (- float2 float1)) tolerance))
@@ -77,7 +78,8 @@
                                  bubble-scale
                                  bubble-shift
                                  display-precision
-                                 label]}]
+                                 label
+                                 step]}]
   "Bubble scale and bubble shift are finicky constants to get the
   bubble to follow the slider button closely."
   (r/with-let [!bubble (atom nil)
@@ -85,7 +87,7 @@
                !slider-position (r/track #(/ (- @!value min) (- max min)))
                !bubble-left (r/track #(get-bubble-left @!slider-position bubble-scale bubble-shift))]
     [:div.range-wrap
-     [:input.range {:step          1
+     [:input.range {:step          (if step step 1)
                     :type          "range"
                     :value         @!value
                     :min           min
