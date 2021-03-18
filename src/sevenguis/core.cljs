@@ -18,7 +18,7 @@
     [:li [flight-booker/flight-booker2]]
     [:li [timer/timer]]
     [:li [crud/crud]]
-    [:li [circle-drawer/circle-drawer2]]]])
+    [:li [circle-drawer/circle-drawer]]]])
 ;    [cells/cells]]])
 
 (defn mount-root []

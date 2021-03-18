@@ -37,36 +37,32 @@
      [:p text]
      (when button-text [:button {:on-click confirm} button-text])]))
 
-(defn context-menu [{options-and-listeners :options-and-listeners
-                     show?                 :show?
-                     hide                  :hide
-                     [left top]            :position
-                     with-cancel?          :with-cancel?
-                     cancel-listener       :cancel-listener}]
-  "If with-cancel? is a truthy value, a cancel option will be appended to the
-  context menu. By default it simply closes the menu, but if you want additional
-  actions taken upon cancel, you may include an cancel listener. You need not
-  close the menu in your cancel listener; this will be done automatically."
-  [:div.context-menu {:className (when show? "show")
-                      :style     {:left left
-                                  :top  top}}
-   (into [:ul]
-         (cond->
-           (mapv (fn [[option-name listener]]
-                   ^{:key option-name} [:li
-                                        {:on-click (fn on-option-click [click]
-                                                     (listener click)
-                                                     (hide))}
-                                        option-name])
-                 options-and-listeners)
-           with-cancel? (conj
-                          [:hr.context-menu-rule]
-                          ^{:key "Cancel"} [:li.context-menu-cancel
-                                            {:on-click (fn on-cancel-click [click]
-                                                         (when cancel-listener
-                                                           (cancel-listener click))
-                                                         (hide))}
-                                            "Cancel"])))])
+(defn context-menu [{:keys [options-and-listeners
+                            !visible?
+                            !position
+                            with-cancel?
+                            cancel-listener]}]
+  "Options-and-listeners is a map with keys strings which are the name of the desired menu option,
+  and values the listener which you want executed when the user clicks on that option. Your listener
+  doesn't need to bother hiding the context menu; that will be done automatically.
+  If with-cancel? is true, a cancel option will be added to the bottom of the context menu.
+  If you simply want it to close the context menu, you need not add a listener for it; if you
+  want it to do other things as well, add a cancel-listener."
+  [:div.context-menu {:className (when @!visible? "show")
+                      :style     {:top  (some-> @!position (nth 1))
+                                  :left (some-> @!position (nth 0))}}
+   (cond-> (into [:ul]
+                 (for [[option-name listener] options-and-listeners]
+                   [:li {:on-click (fn on-click-context-menu-option [_]
+                                     (listener)
+                                     (reset! !visible? false))}
+                    option-name]))
+           with-cancel? (conj [:hr.context-menu-rule]
+                              [:li.context-menu-cancel {:on-click (fn on-click-cancel [_]
+                                                                    (when cancel-listener
+                                                                      (cancel-listener))
+                                                                    (reset! !visible? false))}
+                               "Cancel"]))])
 
 (defn get-bubble-left [slider-position bubble-scale bubble-shift]
   (let [left-position (+ (* slider-position bubble-scale) bubble-shift)]
@@ -89,7 +85,7 @@
     [:div.range-wrap
      [:input.range {:step          (if step step 1)
                     :type          "range"
-                    :value         @!value
+                    :value         (if @!value @!value "")
                     :min           min
                     :max           max
                     :on-input      (fn range-on-input [e] (reset! !value (js/parseFloat (.. e -target -value))))
@@ -117,7 +113,7 @@
         offset 6]
     (str (+ width offset) "px")))
 
-(defn input-with-suffix [{:keys [!value ;todo move to util
+(defn input-with-suffix [{:keys [!value
                                  value-update
                                  placeholder
                                  hide-suffix?
