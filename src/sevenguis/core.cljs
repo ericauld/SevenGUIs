@@ -18,8 +18,8 @@
     [:li [flight-booker/flight-booker2]]
     [:li [timer/timer]]
     [:li [crud/crud]]
-    [:li [circle-drawer/circle-drawer]]]])
-;    [cells/cells]]])
+    [:li [circle-drawer/circle-drawer]]
+    [:li [cells/cells2]]]])
 
 (defn mount-root []
   (d/render [home-page] (.getElementById js/document "app")))

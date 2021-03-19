@@ -337,3 +337,636 @@
    [:div (str "Selected cell: " @(r/cursor state [:selected-cell]))]
    [modal-cell-editor]])
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(defn cell2 [cell-name]
+  [:input.cell
+   {:value           @(r/track #(-> cell-name get-user-input user-input->formula display-formula))
+    :read-only       true
+    :on-click        (fn [click] (.preventDefault click))
+    :on-double-click (fn [_click]
+                       (select-cell! cell-name)
+                       (r/rswap! state assoc :modal-input @selected-cell :modal-menu-visible? true)
+                       (js/setTimeout #(when-let [modal-element @!modal-element]
+                                         (.focus modal-element))
+                                      5))}])
+
+(defn cell-grid2 []
+  [:div.cell-container
+   (doall (for [y (map str (range 1 (+ 1 n-rows)))]
+            (-> (for [x (subs "ABCDEFGHIJKLMNOPQRSTUVWXYZ" 0 n-columns)]
+                  ^{:key (str x y)} [cell (str x y)])
+                (concat [^{:key (str y "br")} [:br]]))))])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(defn cells2 []
+  [:div.gui.cells
+   [:div.table-wrapper
+    [:table
+     [:thead
+      [:tr
+       [:th]
+       [:th "A"]
+       [:th "B"]
+       [:th "C"]
+       [:th "A"]
+       [:th "B"]
+       [:th "C"]
+       [:th "A"]
+       [:th "B"]
+       [:th "C"]
+       [:th "A"]
+       [:th "B"]
+       [:th "C"]
+       [:th "A"]
+       [:th "B"]
+       [:th "C"]
+       [:th "A"]
+       [:th "B"]
+       [:th "C"]
+       [:th "A"]
+       [:th "B"]
+       [:th "C"]
+       [:th "A"]
+       [:th "B"]
+       [:th "C"]
+       [:th "A"]
+       [:th "B"]]]
+     [:tbody
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]
+      [:tr
+       [:td 1]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]
+       [:td "Hi"]
+       [:td "Bye"]
+       [:td "See you later"]]]]]])
+
+
+
+
+
+
