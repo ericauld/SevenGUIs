@@ -3,164 +3,241 @@
     [reagent.core :as r]
     [sevenguis.util :as util]))
 
-(defn sqr-dist-from [[x y] {:keys [cx cy] :as _circle}]
-  (+ (-> x (- cx) (js/Math.pow 2))
-     (-> y (- cy) (js/Math.pow 2))))
+(def bubble-scale 112)
 
-(defn surrounds? [point {rad :rad :as circle}]
-  (let [sqr-radius (js/Math.pow rad 2)]
-    (-> point (sqr-dist-from circle) (< sqr-radius))))
+(def bubble-shift 10)
 
-(defrecord Circle [index cx cy rad])
+(def default-diameter 40)
 
-(defn nearest-surrounding [circles point]
-  (let [surrounds-point? (partial surrounds? point)
-        sqr-dist-from-point (partial sqr-dist-from point)]
-    (apply min-key sqr-dist-from-point (filter surrounds-point? circles))))
+(def min-diameter 1)
 
-(defn locate-element [html-element]
-  (let [rect (.getBoundingClientRect html-element)]
-    [(.-left rect) (.-top rect)]))
+(def max-diameter 500)
 
-(defn locate-event [event]
-  [(.-clientX event)
-   (.-clientY event)])
+(def diameter-step 1)
 
-(defn locate-relative-to [html-element event]
-  (mapv - (locate-event event) (locate-element html-element)))
+(def circle-settings {:stroke       "#6e6e6e"
+                      :stroke-width 1.25})
+
+(def fill-color-of-selected "#b5b3b3")
+
+(defprotocol Drawable
+  (draw [this]
+        [this settings]))
+
+(defrecord Circle [diameter center-position]
+  Drawable
+  (draw [this]
+    (draw this nil))
+  (draw [_this settings]
+    (let [[x y] center-position]
+      [:circle (-> {:r  (/ diameter 2)
+                    :cx x
+                    :cy y}
+                   (merge settings))])))
+
+(defonce !app-db (r/atom {:circles                         []
+                          :modal-menu-visible?             nil
+                          :context-menu-visible?           nil
+                          :mouse-position-rel-svg          nil
+                          :context-menu-position           nil
+                          :cached-selected-circle-index    nil
+                          :cached-selected-circle-diameter nil}))
+
+(def !circles (r/cursor !app-db [:circles]))
+
+(defonce !circle-history (r/atom {:undo-stack []
+                                  :redo-stack []}))
+
+(defprotocol Undoable-Command
+  (execute [this])
+  (undo [this])
+  (redo [this]
+        "Redo behavior should differ from execute behavior in that upon redo, the redo stack is not cleared"))
+
+(defn add-to-history! [!history command]
+  (r/rswap! !history update :undo-stack conj command)
+  (r/rswap! !history assoc :redo-stack []))
+
+(defrecord Add-Circle-Command [location diameter !memento]
+  Undoable-Command
+  (execute [this]
+    (reset! !memento @!circles)
+    (r/rswap! !circles conj (->Circle diameter location))
+    (add-to-history! !circle-history this))
+  (redo [_this]
+    (r/rswap! !circles conj (->Circle diameter location)))
+  (undo [_this]
+    (reset! !circles @!memento)))
+
+(defrecord Change-Diameter-Command [index new-diameter !memento]
+  Undoable-Command
+  (execute [this]
+    (reset! !memento @!circles)
+    (r/rswap! !circles assoc-in [index :diameter] new-diameter)
+    (add-to-history! !circle-history this))
+  (redo [_this]
+    (r/rswap! !circles assoc-in [index :diameter] new-diameter))
+  (undo [_this]
+    (reset! !circles @!memento)))
+
+(defn undo-last! [!history]
+  (when-let [last-command (last (:undo-stack @!history))]
+    (undo last-command)
+    (r/rswap! !history update-in [:undo-stack] pop)
+    (r/rswap! !history update-in [:redo-stack] conj last-command)))
+
+(defn redo-last! [!history]
+  (when-let [last-undo (last (:redo-stack @!history))]
+    (redo last-undo)
+    (r/rswap! !history update-in [:undo-stack] conj last-undo)
+    (r/rswap! !history update-in [:redo-stack] pop)))
+
+(def !mouse-position (r/cursor !app-db [:mouse-position-rel-svg]))
+
+(def !context-menu-position (r/cursor !app-db [:context-menu-position]))
+
+(def !context-visible? (r/cursor !app-db [:context-menu-visible?]))
+
+(def !modal-visible? (r/cursor !app-db [:modal-menu-visible?]))
+
+(def !cached-selected-index (r/cursor !app-db [:cached-selected-circle-index]))
+
+(def !cached-diameter (r/cursor !app-db [:cached-selected-circle-diameter]))
+
+(defn find-index-of-selected-circle [circles mouse-position]
+  (when mouse-position
+    (let [circles-with-indices-and-square-distances
+          (map-indexed
+            (fn [index circle]
+              (let [sqr-distance-2d (fn [[x1 y1] [x2 y2]]
+                                      (let [[d1 d2] (mapv - [x2 y2] [x1 y1])]
+                                        (+
+                                          (js/Math.pow d1 2)
+                                          (js/Math.pow d2 2))))]
+                {:index                         index
+                 :sqr-radius                    (-> circle :diameter (/ 2) (js/Math.pow 2))
+                 :sqr-dist-from-center-to-mouse (sqr-distance-2d mouse-position (:center-position circle))}))
+            circles)
+          circles-surrounding-mouse (filter #(< (:sqr-dist-from-center-to-mouse %)
+                                                (:sqr-radius %))
+                                            circles-with-indices-and-square-distances)
+          index-of-closest-surrounding
+          (some->> circles-surrounding-mouse (apply min-key :sqr-dist-from-center-to-mouse) :index)]
+      index-of-closest-surrounding)))
+
+(def !index-of-selected-circle (r/track #(if-not (or @!context-visible? @!modal-visible?)
+                                           (find-index-of-selected-circle @!circles @!mouse-position)
+                                           @!cached-selected-index)))
+
+(defn get-set-selected-circle
+  ([_k] (when @!index-of-selected-circle
+          (nth @!circles @!index-of-selected-circle)))
+  ([_k v] (when @!index-of-selected-circle
+            (r/rswap! !circles assoc @!index-of-selected-circle v))))
+
+(def !selected-circle
+  "The cursor is set with a get-set function and an empty path, since the path consists only of the index
+  of the selected circle, which is already provided in the get-set function."
+  (r/cursor get-set-selected-circle []))
+
+(def !modal-ref (atom nil))
+
+(def !svg-ref (atom nil))
+
+(def !gui-ref (atom nil))
+
+(defn render-circles
+  ([circles index-of-selected]
+   (render-circles circles index-of-selected nil))
+  ([circles index-of-selected settings]
+   (map-indexed (fn [index circle]
+                  (let [settings-with-fill
+                        (merge settings
+                               {:fill (if (= index index-of-selected)
+                                        fill-color-of-selected
+                                        "transparent")})]
+                    (draw circle settings-with-fill)))
+                circles)))
+
+(def !render-circles
+  (r/track #(render-circles @!circles
+                            @!index-of-selected-circle
+                            circle-settings)))
+
+(defn change-diameter-dialog []
+  [:dialog {:ref (fn set-modal-ref [ref] (reset! !modal-ref ref))}
+   [:p
+    (let [[x y] (when @!selected-circle
+                  (->> @!selected-circle :center-position (mapv js/Math.round)))]
+      (str "Adjust diameter of circle at (" x "," y ")"))]
+   [:div]
+   [util/range-with-bubble {:!value       (r/cursor !selected-circle [:diameter])
+                            :min          min-diameter
+                            :max          max-diameter
+                            :bubble-scale bubble-scale
+                            :bubble-shift bubble-shift
+                            :step         diameter-step}]
+
+   [:div.gui-line.button-line
+    [:button {:on-click (fn on-click-modal-done [_]
+                          (when-not (= @!cached-diameter (:diameter @!selected-circle))
+                            (let [circles-before-diameter-change (assoc-in
+                                                                   @!circles
+                                                                   [@!index-of-selected-circle :diameter]
+                                                                   @!cached-diameter)
+                                  change-diameter-command
+                                  (map->Change-Diameter-Command
+                                    {:index        @!index-of-selected-circle
+                                     :new-diameter (:diameter @!selected-circle)
+                                     :!memento     (atom circles-before-diameter-change)})]
+                              (add-to-history! !circle-history change-diameter-command)))
+                          (when-let [modal @!modal-ref]
+                            (reset! !modal-visible? false)
+                            (.close modal)))}
+     "Done"]
+    [:button {:on-click (fn on-click-modal-cancel [_]
+                          (when-let [modal @!modal-ref]
+                            (r/rswap! !selected-circle assoc :diameter @!cached-diameter)
+                            (reset! !modal-visible? false)
+                            (.close modal)))}
+     "Cancel"]]])
+
+(defn circle-canvas []
+  [:div.gui-line
+   (into
+     [:svg#circle-svg
+      {:ref             (fn set-svg-ref [ref] (reset! !svg-ref ref))
+       :on-mouse-leave  (fn svg-mouse-leave [_] (reset! !mouse-position nil))
+       :on-mouse-move   (fn svg-mouse-move [e] (reset! !mouse-position (util/coords-rel !svg-ref e)))
+       :on-context-menu (fn svg-on-context-menu [right-click]
+                          (when @!index-of-selected-circle
+                            (.preventDefault right-click)
+                            (reset! !cached-selected-index @!index-of-selected-circle)
+                            (reset! !cached-diameter (-> @!circles (nth @!index-of-selected-circle) :diameter))
+                            (reset! !context-menu-position (util/coords-rel !gui-ref right-click))
+                            (reset! !context-visible? true)))
+       :on-click        (fn svg-on-click [_]
+                          (when-not @!context-visible?
+                            (execute (map->Add-Circle-Command {:location @!mouse-position
+                                                               :diameter default-diameter
+                                                               :!memento (atom nil)}))))}]
+     @!render-circles)])
+
+(defn circle-drawer-buttons []
+  [:div.gui-line.button-line
+   [:button {:on-click (fn undo-on-click [_] (undo-last! !circle-history))} "Undo"]
+   [:button {:on-click (fn redo-on-click [_] (redo-last! !circle-history))} "Redo"]])
 
 (defn circle-drawer []
-  (r/with-let
-    [default-radius 40
-     draw-settings {:stroke       "black"
-                    :stroke-width 1.25}
-     selected-circle-color "#6bcdff"
-     unselected-circle-color "transparent"
-     circles (r/atom [])
-     selected-circle (r/atom nil)
-     selected? #(= @selected-circle %)
-     select! #(reset! selected-circle %)
-     unselect! #(reset! selected-circle nil)
-     reset-radius! (fn [circle-atom new-radius]
-                     (r/rswap! circle-atom assoc :rad new-radius)
-                     (r/rswap! circles assoc-in [(:index @circle-atom) :rad] new-radius))
-     clear-circles! #(reset! circles [])
-     undo-list (r/atom [])
-     redo-list (r/atom [])
-     clear-redo-list! #(reset! redo-list [])
-     undo-watcher! (fn [_ _ old _] (r/rswap! undo-list conj old))
-     track-edits (fn []
-                   (add-watch circles ::undo-watcher undo-watcher!)
-                   (add-watch circles ::redo-clearer clear-redo-list!))
-     stop-tracking-edits (fn []
-                           (remove-watch circles ::undo-watcher)
-                           (remove-watch circles ::redo-clearer))
-     do-without-tracking (fn [f! a & args]
-                           (stop-tracking-edits)
-                           (apply f! a args)
-                           (track-edits))
-     undo! (fn []
-             (when-let [prev-state (peek @undo-list)]
-               (let [current-state @circles]
-                 (do-without-tracking reset! circles prev-state)
-                 (r/rswap! undo-list pop)
-                 (r/rswap! redo-list conj current-state))))
-     redo! (fn []
-             (when-let [redo-state (peek @redo-list)]
-               (remove-watch circles ::redo-clearer)
-               (reset! circles redo-state)
-               (add-watch circles ::redo-clearer clear-redo-list!)
-               (r/rswap! redo-list pop)))
-     context-menu-visible? (r/atom false)
-     modal-menu-visible? (r/atom false)
-     !svg-element (atom nil)
-     !gui-main-element (atom nil)
-     context-menu-location (r/atom [0 0])
-     show-context-menu-at! (fn [click]
-                             ; make sure element has already been rendered
-                             (when-let [gui-main-element @!gui-main-element]
-                               (->> click
-                                    (locate-relative-to gui-main-element)
-                                    (reset! context-menu-location))
-                               (reset! context-menu-visible? true)))
-     add-circle-at-click! (fn [click]
-                            ; make sure element has already been rendered
-                            (when-let [svg-element @!svg-element]
-                              (let [index-of-new-circle (count @circles)
-                                    [click-x click-y] (->> click (locate-relative-to svg-element))
-                                    new-circle (map->Circle {:index index-of-new-circle
-                                                             :cx    click-x
-                                                             :cy    click-y
-                                                             :rad   default-radius})]
-                                (r/rswap! circles conj new-circle)
-                                (select! new-circle))))
-     update-mouse-location! (fn [mouse]
-                              ; make sure element has already been rendered
-                              (when-let [svg-element @!svg-element]
-                                (let [nearest-surrounding-circle (->> mouse
-                                                                      (locate-relative-to svg-element)
-                                                                      (nearest-surrounding @circles))]
-                                  (if-not (selected? nearest-surrounding-circle)
-                                    (select! nearest-surrounding-circle)))))
-     hide-menu-or-draw-circle! (fn [click]
-                                 (if @context-menu-visible?
-                                   (reset! context-menu-visible? false)
-                                   (if-not @modal-menu-visible?
-                                     (add-circle-at-click! click))))
-     _ (track-edits)]
-    [:div.gui
-     [:div.gui-title "Circle Drawer"]
-     [:div#circle-drawer-main.gui-main {:ref #(reset! !gui-main-element %)}
-      [:svg {:width           500 :height 600
-             :ref             #(reset! !svg-element %)
-             :on-click        hide-menu-or-draw-circle!
-             :on-context-menu (fn [click] (when (some? @selected-circle)
-                                            (.preventDefault click)
-                                            (show-context-menu-at! click)))
-             :on-mouse-move   #(if-not (or @modal-menu-visible? @context-menu-visible?)
-                                 (update-mouse-location! %))
-             :on-mouse-leave  #(if-not (or @context-menu-visible? @modal-menu-visible?)
-                                 (unselect!))}
-       (doall (for [{:keys [index cx cy rad] :as circle} @circles]
-                ^{:key index} [:circle.circle
-                               (merge draw-settings
-                                      {:id   index :cx cx :cy cy :r rad
-                                       :fill (if (= circle @selected-circle)
-                                               selected-circle-color
-                                               unselected-circle-color)})]))]
-      [:ul#context-menu
-       {:hidden (not @context-menu-visible?)
-        :style  {:left (get @context-menu-location 0)
-                 :top  (get @context-menu-location 1)}}
-       [:li#context-menu-item
-        {:on-click #(do (reset! context-menu-visible? false)
-                        (reset! modal-menu-visible? true)
-                        (r/rswap! undo-list conj @circles)
-                        (stop-tracking-edits))}
-        "Adjust radius"]]
-      [:button {:on-click undo!
-                :disabled (empty? @undo-list)}
-       "Undo"]
-      [:button {:on-click redo!
-                :disabled (empty? @redo-list)}
-       "Redo"]
-      [:button {:on-click clear-circles!
-                :disabled (empty? @circles)}
-       "Clear all"]
-      (if @modal-menu-visible?
-        [:div#modal {:on-key-down #(if (-> % .-key (= "Escape"))
-                                     (reset! modal-menu-visible? false))
-                     :style       {:opacity 1}}
-         "Adjust radius"
-         [:input {:type      "range" :min 0 :max 400
-                  :value     (-> @selected-circle :rad)
-                  :on-change (fn [event]
-                               (let [user-input (js/parseInt (util/get-event-value event))]
-                                 (reset-radius! selected-circle user-input)))
-                  :style     {:display "block"}}]
-         [:button {:on-click #(do (reset! modal-menu-visible? false)
-                                  (update-mouse-location! %)
-                                  (if (= @circles (peek @undo-list))
-                                    (r/rswap! undo-list pop))
-                                  (track-edits))}
-          "Done"]])]]))
+  [:div#circle-drawer.gui {:ref #(reset! !gui-ref %)}
+   [circle-drawer-buttons]
+   [circle-canvas]
+   [util/context-menu {:options-and-listeners {"Adjust diameter..."
+                                               (fn context-menu-adjust-diameter-on-click [_]
+                                                 (when-let [modal @!modal-ref]
+                                                   (reset! !modal-visible? true)
+                                                   (.showModal modal)))}
+                       :!visible?             !context-visible?
+                       :!position             !context-menu-position
+                       :with-cancel?          true}]
+   [change-diameter-dialog]])

@@ -1,10 +1,7 @@
 (ns sevenguis.core
   (:require
-    [reagent.core :as r]
     [reagent.dom :as d]
-    [clojure.string :as str]
     [sevenguis.timer :as timer]
-    [sevenguis.util :as util]
     [sevenguis.crud :as crud]
     [sevenguis.circle-drawer :as circle-drawer]
     [sevenguis.cells :as cells]
@@ -13,17 +10,16 @@
     [sevenguis.counter :as counter]))
 
 (defn home-page []
-  [:div {:style {:text-align "center"}}
-   [:div.title {:style {:justify-content "space-around"}}
-    [:h2 "Seven GUIs in Reagent"]]
-   [:div.wrapper
-    [counter/counter]
-    [temperature-converter/temp-converter]
-    [flight-booker/flight-booker]
-    [timer/timer]
-    [crud/crud]
-    [circle-drawer/circle-drawer]
-    [cells/cells]]])
+  [:div.main
+   [:h1 [:a#seven-guis-link {:href "https://eugenkiss.github.io/7guis/"} "Seven GUIs"] " in Reagent"]
+   [:ol
+    [:li [counter/counter]]
+    [:li [temperature-converter/temperature-converter]]
+    [:li [flight-booker/flight-booker2]]
+    [:li [timer/timer]]
+    [:li [crud/crud]]
+    [:li [circle-drawer/circle-drawer]]
+    [:li [cells/cells]]]])
 
 (defn mount-root []
   (d/render [home-page] (.getElementById js/document "app")))
