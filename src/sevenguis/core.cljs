@@ -19,7 +19,7 @@
     [:li [timer/timer]]
     [:li [crud/crud]]
     [:li [circle-drawer/circle-drawer]]
-    [:li [cells/cells2]]]])
+    [:li [cells/cells]]]])
 
 (defn mount-root []
   (d/render [home-page] (.getElementById js/document "app")))

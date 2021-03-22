@@ -358,16 +358,35 @@ th {
     position: sticky;
     top: -1px;
     z-index: 2;
+    border-top: 2px solid;
+    border-bottom: 2px solid;
+    border-right: 2px solid;
+    padding: 0.5rem;
 }
+
+table td {
+    border-bottom: 2px solid;
+    border-right: 2px solid;
+}
+
+table th:first-child,
+table td:first-child {
+    padding: 0.5rem;
+    border-left: 2px solid;
+}
+
 
 th:first-of-type {
      left: 0;
      z-index: 3;
 }
 
-td, th {
-    border: 1px solid #999;
+td input {
+    border: none;
     padding: 0.5rem;
+}
+
+td, th {
     text-align: left;
 }
 
