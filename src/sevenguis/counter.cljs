@@ -15,7 +15,10 @@
                decrease-count-five #(r/rswap! !click-count (fn [x] (max 0 (- x 5))))
                reset-counter #(reset! !click-count 0)
                !modal (atom nil)
-               set-modal-ref #(reset! !modal %)
+               set-modal-ref (fn [ref]
+                               (reset! !modal ref)
+                               (when-let [modal @!modal]
+                                 (js/dialogPolyfill.registerDialog modal)))
                close-modal (fn [_] (when-let [modal @!modal]
                                      (.close modal)))
                show-modal (fn [_] (when-let [modal @!modal]

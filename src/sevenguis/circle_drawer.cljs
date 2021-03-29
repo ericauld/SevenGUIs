@@ -165,7 +165,10 @@
                             circle-settings)))
 
 (defn change-diameter-dialog []
-  [:dialog {:ref (fn set-modal-ref [ref] (reset! !modal-ref ref))}
+  [:dialog#change-diameter-dialog {:ref (fn set-modal-ref [ref]
+                                          (reset! !modal-ref ref)
+                                          (when-let [modal @!modal-ref]
+                                            (js/dialogPolyfill.registerDialog modal)))}
    [:p
     (let [[x y] (when @!selected-circle
                   (->> @!selected-circle :center-position (mapv js/Math.round)))]
