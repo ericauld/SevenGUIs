@@ -13,9 +13,9 @@ sevenguis.circle_drawer.fill_color_of_selected = "#b5b3b3";
  */
 sevenguis.circle_drawer.Drawable = function(){};
 
-var sevenguis$circle_drawer$Drawable$draw$dyn_75261 = (function() {
-var G__75262 = null;
-var G__75262__1 = (function (this$){
+var sevenguis$circle_drawer$Drawable$draw$dyn_29857 = (function() {
+var G__29858 = null;
+var G__29858__1 = (function (this$){
 var x__4428__auto__ = (((this$ == null))?null:this$);
 var m__4429__auto__ = (sevenguis.circle_drawer.draw[goog.typeOf(x__4428__auto__)]);
 if((!((m__4429__auto__ == null)))){
@@ -29,7 +29,7 @@ throw cljs.core.missing_protocol("Drawable.draw",this$);
 }
 }
 });
-var G__75262__2 = (function (this$,settings){
+var G__29858__2 = (function (this$,settings){
 var x__4428__auto__ = (((this$ == null))?null:this$);
 var m__4429__auto__ = (sevenguis.circle_drawer.draw[goog.typeOf(x__4428__auto__)]);
 if((!((m__4429__auto__ == null)))){
@@ -43,23 +43,23 @@ throw cljs.core.missing_protocol("Drawable.draw",this$);
 }
 }
 });
-G__75262 = function(this$,settings){
+G__29858 = function(this$,settings){
 switch(arguments.length){
 case 1:
-return G__75262__1.call(this,this$);
+return G__29858__1.call(this,this$);
 case 2:
-return G__75262__2.call(this,this$,settings);
+return G__29858__2.call(this,this$,settings);
 }
 throw(new Error('Invalid arity: ' + arguments.length));
 };
-G__75262.cljs$core$IFn$_invoke$arity$1 = G__75262__1;
-G__75262.cljs$core$IFn$_invoke$arity$2 = G__75262__2;
-return G__75262;
+G__29858.cljs$core$IFn$_invoke$arity$1 = G__29858__1;
+G__29858.cljs$core$IFn$_invoke$arity$2 = G__29858__2;
+return G__29858;
 })()
 ;
 sevenguis.circle_drawer.draw = (function sevenguis$circle_drawer$draw(var_args){
-var G__75073 = arguments.length;
-switch (G__75073) {
+var G__29790 = arguments.length;
+switch (G__29790) {
 case 1:
 return sevenguis.circle_drawer.draw.cljs$core$IFn$_invoke$arity$1((arguments[(0)]));
 
@@ -78,7 +78,7 @@ throw (new Error(["Invalid arity: ",cljs.core.str.cljs$core$IFn$_invoke$arity$1(
 if((((!((this$ == null)))) && ((!((this$.sevenguis$circle_drawer$Drawable$draw$arity$1 == null)))))){
 return this$.sevenguis$circle_drawer$Drawable$draw$arity$1(this$);
 } else {
-return sevenguis$circle_drawer$Drawable$draw$dyn_75261(this$);
+return sevenguis$circle_drawer$Drawable$draw$dyn_29857(this$);
 }
 }));
 
@@ -86,7 +86,7 @@ return sevenguis$circle_drawer$Drawable$draw$dyn_75261(this$);
 if((((!((this$ == null)))) && ((!((this$.sevenguis$circle_drawer$Drawable$draw$arity$2 == null)))))){
 return this$.sevenguis$circle_drawer$Drawable$draw$arity$2(this$,settings);
 } else {
-return sevenguis$circle_drawer$Drawable$draw$dyn_75261(this$,settings);
+return sevenguis$circle_drawer$Drawable$draw$dyn_29857(this$,settings);
 }
 }));
 
@@ -128,12 +128,12 @@ var this__4380__auto____$1 = this;
 return this__4380__auto____$1.cljs$core$ILookup$_lookup$arity$3(null,k__4381__auto__,null);
 }));
 
-(sevenguis.circle_drawer.Circle.prototype.cljs$core$ILookup$_lookup$arity$3 = (function (this__4382__auto__,k75075,else__4383__auto__){
+(sevenguis.circle_drawer.Circle.prototype.cljs$core$ILookup$_lookup$arity$3 = (function (this__4382__auto__,k29792,else__4383__auto__){
 var self__ = this;
 var this__4382__auto____$1 = this;
-var G__75085 = k75075;
-var G__75085__$1 = (((G__75085 instanceof cljs.core.Keyword))?G__75085.fqn:null);
-switch (G__75085__$1) {
+var G__29796 = k29792;
+var G__29796__$1 = (((G__29796 instanceof cljs.core.Keyword))?G__29796.fqn:null);
+switch (G__29796__$1) {
 case "diameter":
 return self__.diameter;
 
@@ -143,7 +143,7 @@ return self__.center_position;
 
 break;
 default:
-return cljs.core.get.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k75075,else__4383__auto__);
+return cljs.core.get.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k29792,else__4383__auto__);
 
 }
 }));
@@ -151,10 +151,10 @@ return cljs.core.get.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k75075,else__
 (sevenguis.circle_drawer.Circle.prototype.cljs$core$IKVReduce$_kv_reduce$arity$3 = (function (this__4399__auto__,f__4400__auto__,init__4401__auto__){
 var self__ = this;
 var this__4399__auto____$1 = this;
-return cljs.core.reduce.cljs$core$IFn$_invoke$arity$3((function (ret__4402__auto__,p__75086){
-var vec__75087 = p__75086;
-var k__4403__auto__ = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75087,(0),null);
-var v__4404__auto__ = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75087,(1),null);
+return cljs.core.reduce.cljs$core$IFn$_invoke$arity$3((function (ret__4402__auto__,p__29797){
+var vec__29798 = p__29797;
+var k__4403__auto__ = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29798,(0),null);
+var v__4404__auto__ = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29798,(1),null);
 return (f__4400__auto__.cljs$core$IFn$_invoke$arity$3 ? f__4400__auto__.cljs$core$IFn$_invoke$arity$3(ret__4402__auto__,k__4403__auto__,v__4404__auto__) : f__4400__auto__.call(null,ret__4402__auto__,k__4403__auto__,v__4404__auto__));
 }),init__4401__auto__,this__4399__auto____$1);
 }));
@@ -168,10 +168,10 @@ return cljs.core.pr_sequential_writer(writer__4395__auto__,cljs.core.pr_writer,"
 return cljs.core.pr_sequential_writer(writer__4395__auto__,pr_pair__4397__auto__,"#sevenguis.circle-drawer.Circle{",", ","}",opts__4396__auto__,cljs.core.concat.cljs$core$IFn$_invoke$arity$2(new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [(new cljs.core.PersistentVector(null,2,(5),cljs.core.PersistentVector.EMPTY_NODE,[new cljs.core.Keyword(null,"diameter","diameter",1560913323),self__.diameter],null)),(new cljs.core.PersistentVector(null,2,(5),cljs.core.PersistentVector.EMPTY_NODE,[new cljs.core.Keyword(null,"center-position","center-position",-1139175181),self__.center_position],null))], null),self__.__extmap));
 }));
 
-(sevenguis.circle_drawer.Circle.prototype.cljs$core$IIterable$_iterator$arity$1 = (function (G__75074){
+(sevenguis.circle_drawer.Circle.prototype.cljs$core$IIterable$_iterator$arity$1 = (function (G__29791){
 var self__ = this;
-var G__75074__$1 = this;
-return (new cljs.core.RecordIter((0),G__75074__$1,2,new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"diameter","diameter",1560913323),new cljs.core.Keyword(null,"center-position","center-position",-1139175181)], null),(cljs.core.truth_(self__.__extmap)?cljs.core._iterator(self__.__extmap):cljs.core.nil_iter())));
+var G__29791__$1 = this;
+return (new cljs.core.RecordIter((0),G__29791__$1,2,new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"diameter","diameter",1560913323),new cljs.core.Keyword(null,"center-position","center-position",-1139175181)], null),(cljs.core.truth_(self__.__extmap)?cljs.core._iterator(self__.__extmap):cljs.core.nil_iter())));
 }));
 
 (sevenguis.circle_drawer.Circle.prototype.cljs$core$IMeta$_meta$arity$1 = (function (this__4378__auto__){
@@ -208,10 +208,10 @@ return h__4238__auto____$1;
 }
 }));
 
-(sevenguis.circle_drawer.Circle.prototype.cljs$core$IEquiv$_equiv$arity$2 = (function (this75076,other75077){
+(sevenguis.circle_drawer.Circle.prototype.cljs$core$IEquiv$_equiv$arity$2 = (function (this29793,other29794){
 var self__ = this;
-var this75076__$1 = this;
-return (((!((other75077 == null)))) && ((this75076__$1.constructor === other75077.constructor)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this75076__$1.diameter,other75077.diameter)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this75076__$1.center_position,other75077.center_position)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this75076__$1.__extmap,other75077.__extmap)));
+var this29793__$1 = this;
+return (((!((other29794 == null)))) && ((this29793__$1.constructor === other29794.constructor)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this29793__$1.diameter,other29794.diameter)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this29793__$1.center_position,other29794.center_position)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this29793__$1.__extmap,other29794.__extmap)));
 }));
 
 (sevenguis.circle_drawer.Circle.prototype.cljs$core$IMap$_dissoc$arity$2 = (function (this__4389__auto__,k__4390__auto__){
@@ -224,18 +224,18 @@ return (new sevenguis.circle_drawer.Circle(self__.diameter,self__.center_positio
 }
 }));
 
-(sevenguis.circle_drawer.Circle.prototype.cljs$core$IAssociative$_assoc$arity$3 = (function (this__4387__auto__,k__4388__auto__,G__75074){
+(sevenguis.circle_drawer.Circle.prototype.cljs$core$IAssociative$_assoc$arity$3 = (function (this__4387__auto__,k__4388__auto__,G__29791){
 var self__ = this;
 var this__4387__auto____$1 = this;
-var pred__75098 = cljs.core.keyword_identical_QMARK_;
-var expr__75099 = k__4388__auto__;
-if(cljs.core.truth_((pred__75098.cljs$core$IFn$_invoke$arity$2 ? pred__75098.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"diameter","diameter",1560913323),expr__75099) : pred__75098.call(null,new cljs.core.Keyword(null,"diameter","diameter",1560913323),expr__75099)))){
-return (new sevenguis.circle_drawer.Circle(G__75074,self__.center_position,self__.__meta,self__.__extmap,null));
+var pred__29801 = cljs.core.keyword_identical_QMARK_;
+var expr__29802 = k__4388__auto__;
+if(cljs.core.truth_((pred__29801.cljs$core$IFn$_invoke$arity$2 ? pred__29801.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"diameter","diameter",1560913323),expr__29802) : pred__29801.call(null,new cljs.core.Keyword(null,"diameter","diameter",1560913323),expr__29802)))){
+return (new sevenguis.circle_drawer.Circle(G__29791,self__.center_position,self__.__meta,self__.__extmap,null));
 } else {
-if(cljs.core.truth_((pred__75098.cljs$core$IFn$_invoke$arity$2 ? pred__75098.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"center-position","center-position",-1139175181),expr__75099) : pred__75098.call(null,new cljs.core.Keyword(null,"center-position","center-position",-1139175181),expr__75099)))){
-return (new sevenguis.circle_drawer.Circle(self__.diameter,G__75074,self__.__meta,self__.__extmap,null));
+if(cljs.core.truth_((pred__29801.cljs$core$IFn$_invoke$arity$2 ? pred__29801.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"center-position","center-position",-1139175181),expr__29802) : pred__29801.call(null,new cljs.core.Keyword(null,"center-position","center-position",-1139175181),expr__29802)))){
+return (new sevenguis.circle_drawer.Circle(self__.diameter,G__29791,self__.__meta,self__.__extmap,null));
 } else {
-return (new sevenguis.circle_drawer.Circle(self__.diameter,self__.center_position,self__.__meta,cljs.core.assoc.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k__4388__auto__,G__75074),null));
+return (new sevenguis.circle_drawer.Circle(self__.diameter,self__.center_position,self__.__meta,cljs.core.assoc.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k__4388__auto__,G__29791),null));
 }
 }
 }));
@@ -257,16 +257,16 @@ return this$__$1.sevenguis$circle_drawer$Drawable$draw$arity$2(null,null);
 (sevenguis.circle_drawer.Circle.prototype.sevenguis$circle_drawer$Drawable$draw$arity$2 = (function (_this,settings){
 var self__ = this;
 var _this__$1 = this;
-var vec__75102 = self__.center_position;
-var x = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75102,(0),null);
-var y = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75102,(1),null);
+var vec__29804 = self__.center_position;
+var x = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29804,(0),null);
+var y = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29804,(1),null);
 return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"circle","circle",1903212362),cljs.core.merge.cljs$core$IFn$_invoke$arity$variadic(cljs.core.prim_seq.cljs$core$IFn$_invoke$arity$2([new cljs.core.PersistentArrayMap(null, 3, [new cljs.core.Keyword(null,"r","r",-471384190),(self__.diameter / (2)),new cljs.core.Keyword(null,"cx","cx",1272694324),x,new cljs.core.Keyword(null,"cy","cy",755331060),y], null),settings], 0))], null);
 }));
 
-(sevenguis.circle_drawer.Circle.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (this__4379__auto__,G__75074){
+(sevenguis.circle_drawer.Circle.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (this__4379__auto__,G__29791){
 var self__ = this;
 var this__4379__auto____$1 = this;
-return (new sevenguis.circle_drawer.Circle(self__.diameter,self__.center_position,G__75074,self__.__extmap,self__.__hash));
+return (new sevenguis.circle_drawer.Circle(self__.diameter,self__.center_position,G__29791,self__.__extmap,self__.__hash));
 }));
 
 (sevenguis.circle_drawer.Circle.prototype.cljs$core$ICollection$_conj$arity$2 = (function (this__4385__auto__,entry__4386__auto__){
@@ -303,15 +303,15 @@ return (new sevenguis.circle_drawer.Circle(diameter,center_position,null,null,nu
 /**
  * Factory function for sevenguis.circle-drawer/Circle, taking a map of keywords to field values.
  */
-sevenguis.circle_drawer.map__GT_Circle = (function sevenguis$circle_drawer$map__GT_Circle(G__75084){
-var extmap__4419__auto__ = (function (){var G__75110 = cljs.core.dissoc.cljs$core$IFn$_invoke$arity$variadic(G__75084,new cljs.core.Keyword(null,"diameter","diameter",1560913323),cljs.core.prim_seq.cljs$core$IFn$_invoke$arity$2([new cljs.core.Keyword(null,"center-position","center-position",-1139175181)], 0));
-if(cljs.core.record_QMARK_(G__75084)){
-return cljs.core.into.cljs$core$IFn$_invoke$arity$2(cljs.core.PersistentArrayMap.EMPTY,G__75110);
+sevenguis.circle_drawer.map__GT_Circle = (function sevenguis$circle_drawer$map__GT_Circle(G__29795){
+var extmap__4419__auto__ = (function (){var G__29807 = cljs.core.dissoc.cljs$core$IFn$_invoke$arity$variadic(G__29795,new cljs.core.Keyword(null,"diameter","diameter",1560913323),cljs.core.prim_seq.cljs$core$IFn$_invoke$arity$2([new cljs.core.Keyword(null,"center-position","center-position",-1139175181)], 0));
+if(cljs.core.record_QMARK_(G__29795)){
+return cljs.core.into.cljs$core$IFn$_invoke$arity$2(cljs.core.PersistentArrayMap.EMPTY,G__29807);
 } else {
-return G__75110;
+return G__29807;
 }
 })();
-return (new sevenguis.circle_drawer.Circle(new cljs.core.Keyword(null,"diameter","diameter",1560913323).cljs$core$IFn$_invoke$arity$1(G__75084),new cljs.core.Keyword(null,"center-position","center-position",-1139175181).cljs$core$IFn$_invoke$arity$1(G__75084),null,cljs.core.not_empty(extmap__4419__auto__),null));
+return (new sevenguis.circle_drawer.Circle(new cljs.core.Keyword(null,"diameter","diameter",1560913323).cljs$core$IFn$_invoke$arity$1(G__29795),new cljs.core.Keyword(null,"center-position","center-position",-1139175181).cljs$core$IFn$_invoke$arity$1(G__29795),null,cljs.core.not_empty(extmap__4419__auto__),null));
 });
 
 if((typeof sevenguis !== 'undefined') && (typeof sevenguis.circle_drawer !== 'undefined') && (typeof sevenguis.circle_drawer._BANG_app_db !== 'undefined')){
@@ -329,7 +329,7 @@ sevenguis.circle_drawer._BANG_circle_history = reagent.core.atom.cljs$core$IFn$_
  */
 sevenguis.circle_drawer.Undoable_Command = function(){};
 
-var sevenguis$circle_drawer$Undoable_Command$execute$dyn_75276 = (function (this$){
+var sevenguis$circle_drawer$Undoable_Command$execute$dyn_29861 = (function (this$){
 var x__4428__auto__ = (((this$ == null))?null:this$);
 var m__4429__auto__ = (sevenguis.circle_drawer.execute[goog.typeOf(x__4428__auto__)]);
 if((!((m__4429__auto__ == null)))){
@@ -347,11 +347,11 @@ sevenguis.circle_drawer.execute = (function sevenguis$circle_drawer$execute(this
 if((((!((this$ == null)))) && ((!((this$.sevenguis$circle_drawer$Undoable_Command$execute$arity$1 == null)))))){
 return this$.sevenguis$circle_drawer$Undoable_Command$execute$arity$1(this$);
 } else {
-return sevenguis$circle_drawer$Undoable_Command$execute$dyn_75276(this$);
+return sevenguis$circle_drawer$Undoable_Command$execute$dyn_29861(this$);
 }
 });
 
-var sevenguis$circle_drawer$Undoable_Command$undo$dyn_75279 = (function (this$){
+var sevenguis$circle_drawer$Undoable_Command$undo$dyn_29862 = (function (this$){
 var x__4428__auto__ = (((this$ == null))?null:this$);
 var m__4429__auto__ = (sevenguis.circle_drawer.undo[goog.typeOf(x__4428__auto__)]);
 if((!((m__4429__auto__ == null)))){
@@ -369,11 +369,11 @@ sevenguis.circle_drawer.undo = (function sevenguis$circle_drawer$undo(this$){
 if((((!((this$ == null)))) && ((!((this$.sevenguis$circle_drawer$Undoable_Command$undo$arity$1 == null)))))){
 return this$.sevenguis$circle_drawer$Undoable_Command$undo$arity$1(this$);
 } else {
-return sevenguis$circle_drawer$Undoable_Command$undo$dyn_75279(this$);
+return sevenguis$circle_drawer$Undoable_Command$undo$dyn_29862(this$);
 }
 });
 
-var sevenguis$circle_drawer$Undoable_Command$redo$dyn_75281 = (function (this$){
+var sevenguis$circle_drawer$Undoable_Command$redo$dyn_29863 = (function (this$){
 var x__4428__auto__ = (((this$ == null))?null:this$);
 var m__4429__auto__ = (sevenguis.circle_drawer.redo[goog.typeOf(x__4428__auto__)]);
 if((!((m__4429__auto__ == null)))){
@@ -394,7 +394,7 @@ sevenguis.circle_drawer.redo = (function sevenguis$circle_drawer$redo(this$){
 if((((!((this$ == null)))) && ((!((this$.sevenguis$circle_drawer$Undoable_Command$redo$arity$1 == null)))))){
 return this$.sevenguis$circle_drawer$Undoable_Command$redo$arity$1(this$);
 } else {
-return sevenguis$circle_drawer$Undoable_Command$redo$dyn_75281(this$);
+return sevenguis$circle_drawer$Undoable_Command$redo$dyn_29863(this$);
 }
 });
 
@@ -439,12 +439,12 @@ var this__4380__auto____$1 = this;
 return this__4380__auto____$1.cljs$core$ILookup$_lookup$arity$3(null,k__4381__auto__,null);
 }));
 
-(sevenguis.circle_drawer.Add_Circle_Command.prototype.cljs$core$ILookup$_lookup$arity$3 = (function (this__4382__auto__,k75120,else__4383__auto__){
+(sevenguis.circle_drawer.Add_Circle_Command.prototype.cljs$core$ILookup$_lookup$arity$3 = (function (this__4382__auto__,k29809,else__4383__auto__){
 var self__ = this;
 var this__4382__auto____$1 = this;
-var G__75124 = k75120;
-var G__75124__$1 = (((G__75124 instanceof cljs.core.Keyword))?G__75124.fqn:null);
-switch (G__75124__$1) {
+var G__29813 = k29809;
+var G__29813__$1 = (((G__29813 instanceof cljs.core.Keyword))?G__29813.fqn:null);
+switch (G__29813__$1) {
 case "location":
 return self__.location;
 
@@ -458,7 +458,7 @@ return self__._BANG_memento;
 
 break;
 default:
-return cljs.core.get.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k75120,else__4383__auto__);
+return cljs.core.get.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k29809,else__4383__auto__);
 
 }
 }));
@@ -466,10 +466,10 @@ return cljs.core.get.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k75120,else__
 (sevenguis.circle_drawer.Add_Circle_Command.prototype.cljs$core$IKVReduce$_kv_reduce$arity$3 = (function (this__4399__auto__,f__4400__auto__,init__4401__auto__){
 var self__ = this;
 var this__4399__auto____$1 = this;
-return cljs.core.reduce.cljs$core$IFn$_invoke$arity$3((function (ret__4402__auto__,p__75125){
-var vec__75126 = p__75125;
-var k__4403__auto__ = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75126,(0),null);
-var v__4404__auto__ = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75126,(1),null);
+return cljs.core.reduce.cljs$core$IFn$_invoke$arity$3((function (ret__4402__auto__,p__29814){
+var vec__29815 = p__29814;
+var k__4403__auto__ = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29815,(0),null);
+var v__4404__auto__ = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29815,(1),null);
 return (f__4400__auto__.cljs$core$IFn$_invoke$arity$3 ? f__4400__auto__.cljs$core$IFn$_invoke$arity$3(ret__4402__auto__,k__4403__auto__,v__4404__auto__) : f__4400__auto__.call(null,ret__4402__auto__,k__4403__auto__,v__4404__auto__));
 }),init__4401__auto__,this__4399__auto____$1);
 }));
@@ -483,10 +483,10 @@ return cljs.core.pr_sequential_writer(writer__4395__auto__,cljs.core.pr_writer,"
 return cljs.core.pr_sequential_writer(writer__4395__auto__,pr_pair__4397__auto__,"#sevenguis.circle-drawer.Add-Circle-Command{",", ","}",opts__4396__auto__,cljs.core.concat.cljs$core$IFn$_invoke$arity$2(new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [(new cljs.core.PersistentVector(null,2,(5),cljs.core.PersistentVector.EMPTY_NODE,[new cljs.core.Keyword(null,"location","location",1815599388),self__.location],null)),(new cljs.core.PersistentVector(null,2,(5),cljs.core.PersistentVector.EMPTY_NODE,[new cljs.core.Keyword(null,"diameter","diameter",1560913323),self__.diameter],null)),(new cljs.core.PersistentVector(null,2,(5),cljs.core.PersistentVector.EMPTY_NODE,[new cljs.core.Keyword(null,"!memento","!memento",1194699893),self__._BANG_memento],null))], null),self__.__extmap));
 }));
 
-(sevenguis.circle_drawer.Add_Circle_Command.prototype.cljs$core$IIterable$_iterator$arity$1 = (function (G__75119){
+(sevenguis.circle_drawer.Add_Circle_Command.prototype.cljs$core$IIterable$_iterator$arity$1 = (function (G__29808){
 var self__ = this;
-var G__75119__$1 = this;
-return (new cljs.core.RecordIter((0),G__75119__$1,3,new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"location","location",1815599388),new cljs.core.Keyword(null,"diameter","diameter",1560913323),new cljs.core.Keyword(null,"!memento","!memento",1194699893)], null),(cljs.core.truth_(self__.__extmap)?cljs.core._iterator(self__.__extmap):cljs.core.nil_iter())));
+var G__29808__$1 = this;
+return (new cljs.core.RecordIter((0),G__29808__$1,3,new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"location","location",1815599388),new cljs.core.Keyword(null,"diameter","diameter",1560913323),new cljs.core.Keyword(null,"!memento","!memento",1194699893)], null),(cljs.core.truth_(self__.__extmap)?cljs.core._iterator(self__.__extmap):cljs.core.nil_iter())));
 }));
 
 (sevenguis.circle_drawer.Add_Circle_Command.prototype.cljs$core$IMeta$_meta$arity$1 = (function (this__4378__auto__){
@@ -547,10 +547,10 @@ return h__4238__auto____$1;
 }
 }));
 
-(sevenguis.circle_drawer.Add_Circle_Command.prototype.cljs$core$IEquiv$_equiv$arity$2 = (function (this75121,other75122){
+(sevenguis.circle_drawer.Add_Circle_Command.prototype.cljs$core$IEquiv$_equiv$arity$2 = (function (this29810,other29811){
 var self__ = this;
-var this75121__$1 = this;
-return (((!((other75122 == null)))) && ((this75121__$1.constructor === other75122.constructor)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this75121__$1.location,other75122.location)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this75121__$1.diameter,other75122.diameter)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this75121__$1._BANG_memento,other75122._BANG_memento)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this75121__$1.__extmap,other75122.__extmap)));
+var this29810__$1 = this;
+return (((!((other29811 == null)))) && ((this29810__$1.constructor === other29811.constructor)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this29810__$1.location,other29811.location)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this29810__$1.diameter,other29811.diameter)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this29810__$1._BANG_memento,other29811._BANG_memento)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this29810__$1.__extmap,other29811.__extmap)));
 }));
 
 (sevenguis.circle_drawer.Add_Circle_Command.prototype.cljs$core$IMap$_dissoc$arity$2 = (function (this__4389__auto__,k__4390__auto__){
@@ -563,21 +563,21 @@ return (new sevenguis.circle_drawer.Add_Circle_Command(self__.location,self__.di
 }
 }));
 
-(sevenguis.circle_drawer.Add_Circle_Command.prototype.cljs$core$IAssociative$_assoc$arity$3 = (function (this__4387__auto__,k__4388__auto__,G__75119){
+(sevenguis.circle_drawer.Add_Circle_Command.prototype.cljs$core$IAssociative$_assoc$arity$3 = (function (this__4387__auto__,k__4388__auto__,G__29808){
 var self__ = this;
 var this__4387__auto____$1 = this;
-var pred__75134 = cljs.core.keyword_identical_QMARK_;
-var expr__75135 = k__4388__auto__;
-if(cljs.core.truth_((pred__75134.cljs$core$IFn$_invoke$arity$2 ? pred__75134.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"location","location",1815599388),expr__75135) : pred__75134.call(null,new cljs.core.Keyword(null,"location","location",1815599388),expr__75135)))){
-return (new sevenguis.circle_drawer.Add_Circle_Command(G__75119,self__.diameter,self__._BANG_memento,self__.__meta,self__.__extmap,null));
+var pred__29818 = cljs.core.keyword_identical_QMARK_;
+var expr__29819 = k__4388__auto__;
+if(cljs.core.truth_((pred__29818.cljs$core$IFn$_invoke$arity$2 ? pred__29818.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"location","location",1815599388),expr__29819) : pred__29818.call(null,new cljs.core.Keyword(null,"location","location",1815599388),expr__29819)))){
+return (new sevenguis.circle_drawer.Add_Circle_Command(G__29808,self__.diameter,self__._BANG_memento,self__.__meta,self__.__extmap,null));
 } else {
-if(cljs.core.truth_((pred__75134.cljs$core$IFn$_invoke$arity$2 ? pred__75134.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"diameter","diameter",1560913323),expr__75135) : pred__75134.call(null,new cljs.core.Keyword(null,"diameter","diameter",1560913323),expr__75135)))){
-return (new sevenguis.circle_drawer.Add_Circle_Command(self__.location,G__75119,self__._BANG_memento,self__.__meta,self__.__extmap,null));
+if(cljs.core.truth_((pred__29818.cljs$core$IFn$_invoke$arity$2 ? pred__29818.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"diameter","diameter",1560913323),expr__29819) : pred__29818.call(null,new cljs.core.Keyword(null,"diameter","diameter",1560913323),expr__29819)))){
+return (new sevenguis.circle_drawer.Add_Circle_Command(self__.location,G__29808,self__._BANG_memento,self__.__meta,self__.__extmap,null));
 } else {
-if(cljs.core.truth_((pred__75134.cljs$core$IFn$_invoke$arity$2 ? pred__75134.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"!memento","!memento",1194699893),expr__75135) : pred__75134.call(null,new cljs.core.Keyword(null,"!memento","!memento",1194699893),expr__75135)))){
-return (new sevenguis.circle_drawer.Add_Circle_Command(self__.location,self__.diameter,G__75119,self__.__meta,self__.__extmap,null));
+if(cljs.core.truth_((pred__29818.cljs$core$IFn$_invoke$arity$2 ? pred__29818.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"!memento","!memento",1194699893),expr__29819) : pred__29818.call(null,new cljs.core.Keyword(null,"!memento","!memento",1194699893),expr__29819)))){
+return (new sevenguis.circle_drawer.Add_Circle_Command(self__.location,self__.diameter,G__29808,self__.__meta,self__.__extmap,null));
 } else {
-return (new sevenguis.circle_drawer.Add_Circle_Command(self__.location,self__.diameter,self__._BANG_memento,self__.__meta,cljs.core.assoc.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k__4388__auto__,G__75119),null));
+return (new sevenguis.circle_drawer.Add_Circle_Command(self__.location,self__.diameter,self__._BANG_memento,self__.__meta,cljs.core.assoc.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k__4388__auto__,G__29808),null));
 }
 }
 }
@@ -589,10 +589,10 @@ var this__4392__auto____$1 = this;
 return cljs.core.seq(cljs.core.concat.cljs$core$IFn$_invoke$arity$2(new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [(new cljs.core.MapEntry(new cljs.core.Keyword(null,"location","location",1815599388),self__.location,null)),(new cljs.core.MapEntry(new cljs.core.Keyword(null,"diameter","diameter",1560913323),self__.diameter,null)),(new cljs.core.MapEntry(new cljs.core.Keyword(null,"!memento","!memento",1194699893),self__._BANG_memento,null))], null),self__.__extmap));
 }));
 
-(sevenguis.circle_drawer.Add_Circle_Command.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (this__4379__auto__,G__75119){
+(sevenguis.circle_drawer.Add_Circle_Command.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (this__4379__auto__,G__29808){
 var self__ = this;
 var this__4379__auto____$1 = this;
-return (new sevenguis.circle_drawer.Add_Circle_Command(self__.location,self__.diameter,self__._BANG_memento,G__75119,self__.__extmap,self__.__hash));
+return (new sevenguis.circle_drawer.Add_Circle_Command(self__.location,self__.diameter,self__._BANG_memento,G__29808,self__.__extmap,self__.__hash));
 }));
 
 (sevenguis.circle_drawer.Add_Circle_Command.prototype.cljs$core$ICollection$_conj$arity$2 = (function (this__4385__auto__,entry__4386__auto__){
@@ -629,15 +629,15 @@ return (new sevenguis.circle_drawer.Add_Circle_Command(location,diameter,_BANG_m
 /**
  * Factory function for sevenguis.circle-drawer/Add-Circle-Command, taking a map of keywords to field values.
  */
-sevenguis.circle_drawer.map__GT_Add_Circle_Command = (function sevenguis$circle_drawer$map__GT_Add_Circle_Command(G__75123){
-var extmap__4419__auto__ = (function (){var G__75162 = cljs.core.dissoc.cljs$core$IFn$_invoke$arity$variadic(G__75123,new cljs.core.Keyword(null,"location","location",1815599388),cljs.core.prim_seq.cljs$core$IFn$_invoke$arity$2([new cljs.core.Keyword(null,"diameter","diameter",1560913323),new cljs.core.Keyword(null,"!memento","!memento",1194699893)], 0));
-if(cljs.core.record_QMARK_(G__75123)){
-return cljs.core.into.cljs$core$IFn$_invoke$arity$2(cljs.core.PersistentArrayMap.EMPTY,G__75162);
+sevenguis.circle_drawer.map__GT_Add_Circle_Command = (function sevenguis$circle_drawer$map__GT_Add_Circle_Command(G__29812){
+var extmap__4419__auto__ = (function (){var G__29821 = cljs.core.dissoc.cljs$core$IFn$_invoke$arity$variadic(G__29812,new cljs.core.Keyword(null,"location","location",1815599388),cljs.core.prim_seq.cljs$core$IFn$_invoke$arity$2([new cljs.core.Keyword(null,"diameter","diameter",1560913323),new cljs.core.Keyword(null,"!memento","!memento",1194699893)], 0));
+if(cljs.core.record_QMARK_(G__29812)){
+return cljs.core.into.cljs$core$IFn$_invoke$arity$2(cljs.core.PersistentArrayMap.EMPTY,G__29821);
 } else {
-return G__75162;
+return G__29821;
 }
 })();
-return (new sevenguis.circle_drawer.Add_Circle_Command(new cljs.core.Keyword(null,"location","location",1815599388).cljs$core$IFn$_invoke$arity$1(G__75123),new cljs.core.Keyword(null,"diameter","diameter",1560913323).cljs$core$IFn$_invoke$arity$1(G__75123),new cljs.core.Keyword(null,"!memento","!memento",1194699893).cljs$core$IFn$_invoke$arity$1(G__75123),null,cljs.core.not_empty(extmap__4419__auto__),null));
+return (new sevenguis.circle_drawer.Add_Circle_Command(new cljs.core.Keyword(null,"location","location",1815599388).cljs$core$IFn$_invoke$arity$1(G__29812),new cljs.core.Keyword(null,"diameter","diameter",1560913323).cljs$core$IFn$_invoke$arity$1(G__29812),new cljs.core.Keyword(null,"!memento","!memento",1194699893).cljs$core$IFn$_invoke$arity$1(G__29812),null,cljs.core.not_empty(extmap__4419__auto__),null));
 });
 
 
@@ -676,12 +676,12 @@ var this__4380__auto____$1 = this;
 return this__4380__auto____$1.cljs$core$ILookup$_lookup$arity$3(null,k__4381__auto__,null);
 }));
 
-(sevenguis.circle_drawer.Change_Diameter_Command.prototype.cljs$core$ILookup$_lookup$arity$3 = (function (this__4382__auto__,k75164,else__4383__auto__){
+(sevenguis.circle_drawer.Change_Diameter_Command.prototype.cljs$core$ILookup$_lookup$arity$3 = (function (this__4382__auto__,k29823,else__4383__auto__){
 var self__ = this;
 var this__4382__auto____$1 = this;
-var G__75169 = k75164;
-var G__75169__$1 = (((G__75169 instanceof cljs.core.Keyword))?G__75169.fqn:null);
-switch (G__75169__$1) {
+var G__29827 = k29823;
+var G__29827__$1 = (((G__29827 instanceof cljs.core.Keyword))?G__29827.fqn:null);
+switch (G__29827__$1) {
 case "index":
 return self__.index;
 
@@ -695,7 +695,7 @@ return self__._BANG_memento;
 
 break;
 default:
-return cljs.core.get.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k75164,else__4383__auto__);
+return cljs.core.get.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k29823,else__4383__auto__);
 
 }
 }));
@@ -703,10 +703,10 @@ return cljs.core.get.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k75164,else__
 (sevenguis.circle_drawer.Change_Diameter_Command.prototype.cljs$core$IKVReduce$_kv_reduce$arity$3 = (function (this__4399__auto__,f__4400__auto__,init__4401__auto__){
 var self__ = this;
 var this__4399__auto____$1 = this;
-return cljs.core.reduce.cljs$core$IFn$_invoke$arity$3((function (ret__4402__auto__,p__75170){
-var vec__75172 = p__75170;
-var k__4403__auto__ = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75172,(0),null);
-var v__4404__auto__ = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75172,(1),null);
+return cljs.core.reduce.cljs$core$IFn$_invoke$arity$3((function (ret__4402__auto__,p__29828){
+var vec__29829 = p__29828;
+var k__4403__auto__ = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29829,(0),null);
+var v__4404__auto__ = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29829,(1),null);
 return (f__4400__auto__.cljs$core$IFn$_invoke$arity$3 ? f__4400__auto__.cljs$core$IFn$_invoke$arity$3(ret__4402__auto__,k__4403__auto__,v__4404__auto__) : f__4400__auto__.call(null,ret__4402__auto__,k__4403__auto__,v__4404__auto__));
 }),init__4401__auto__,this__4399__auto____$1);
 }));
@@ -720,10 +720,10 @@ return cljs.core.pr_sequential_writer(writer__4395__auto__,cljs.core.pr_writer,"
 return cljs.core.pr_sequential_writer(writer__4395__auto__,pr_pair__4397__auto__,"#sevenguis.circle-drawer.Change-Diameter-Command{",", ","}",opts__4396__auto__,cljs.core.concat.cljs$core$IFn$_invoke$arity$2(new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [(new cljs.core.PersistentVector(null,2,(5),cljs.core.PersistentVector.EMPTY_NODE,[new cljs.core.Keyword(null,"index","index",-1531685915),self__.index],null)),(new cljs.core.PersistentVector(null,2,(5),cljs.core.PersistentVector.EMPTY_NODE,[new cljs.core.Keyword(null,"new-diameter","new-diameter",1899444485),self__.new_diameter],null)),(new cljs.core.PersistentVector(null,2,(5),cljs.core.PersistentVector.EMPTY_NODE,[new cljs.core.Keyword(null,"!memento","!memento",1194699893),self__._BANG_memento],null))], null),self__.__extmap));
 }));
 
-(sevenguis.circle_drawer.Change_Diameter_Command.prototype.cljs$core$IIterable$_iterator$arity$1 = (function (G__75163){
+(sevenguis.circle_drawer.Change_Diameter_Command.prototype.cljs$core$IIterable$_iterator$arity$1 = (function (G__29822){
 var self__ = this;
-var G__75163__$1 = this;
-return (new cljs.core.RecordIter((0),G__75163__$1,3,new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"index","index",-1531685915),new cljs.core.Keyword(null,"new-diameter","new-diameter",1899444485),new cljs.core.Keyword(null,"!memento","!memento",1194699893)], null),(cljs.core.truth_(self__.__extmap)?cljs.core._iterator(self__.__extmap):cljs.core.nil_iter())));
+var G__29822__$1 = this;
+return (new cljs.core.RecordIter((0),G__29822__$1,3,new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"index","index",-1531685915),new cljs.core.Keyword(null,"new-diameter","new-diameter",1899444485),new cljs.core.Keyword(null,"!memento","!memento",1194699893)], null),(cljs.core.truth_(self__.__extmap)?cljs.core._iterator(self__.__extmap):cljs.core.nil_iter())));
 }));
 
 (sevenguis.circle_drawer.Change_Diameter_Command.prototype.cljs$core$IMeta$_meta$arity$1 = (function (this__4378__auto__){
@@ -784,10 +784,10 @@ return h__4238__auto____$1;
 }
 }));
 
-(sevenguis.circle_drawer.Change_Diameter_Command.prototype.cljs$core$IEquiv$_equiv$arity$2 = (function (this75165,other75166){
+(sevenguis.circle_drawer.Change_Diameter_Command.prototype.cljs$core$IEquiv$_equiv$arity$2 = (function (this29824,other29825){
 var self__ = this;
-var this75165__$1 = this;
-return (((!((other75166 == null)))) && ((this75165__$1.constructor === other75166.constructor)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this75165__$1.index,other75166.index)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this75165__$1.new_diameter,other75166.new_diameter)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this75165__$1._BANG_memento,other75166._BANG_memento)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this75165__$1.__extmap,other75166.__extmap)));
+var this29824__$1 = this;
+return (((!((other29825 == null)))) && ((this29824__$1.constructor === other29825.constructor)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this29824__$1.index,other29825.index)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this29824__$1.new_diameter,other29825.new_diameter)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this29824__$1._BANG_memento,other29825._BANG_memento)) && (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(this29824__$1.__extmap,other29825.__extmap)));
 }));
 
 (sevenguis.circle_drawer.Change_Diameter_Command.prototype.cljs$core$IMap$_dissoc$arity$2 = (function (this__4389__auto__,k__4390__auto__){
@@ -800,21 +800,21 @@ return (new sevenguis.circle_drawer.Change_Diameter_Command(self__.index,self__.
 }
 }));
 
-(sevenguis.circle_drawer.Change_Diameter_Command.prototype.cljs$core$IAssociative$_assoc$arity$3 = (function (this__4387__auto__,k__4388__auto__,G__75163){
+(sevenguis.circle_drawer.Change_Diameter_Command.prototype.cljs$core$IAssociative$_assoc$arity$3 = (function (this__4387__auto__,k__4388__auto__,G__29822){
 var self__ = this;
 var this__4387__auto____$1 = this;
-var pred__75180 = cljs.core.keyword_identical_QMARK_;
-var expr__75181 = k__4388__auto__;
-if(cljs.core.truth_((pred__75180.cljs$core$IFn$_invoke$arity$2 ? pred__75180.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"index","index",-1531685915),expr__75181) : pred__75180.call(null,new cljs.core.Keyword(null,"index","index",-1531685915),expr__75181)))){
-return (new sevenguis.circle_drawer.Change_Diameter_Command(G__75163,self__.new_diameter,self__._BANG_memento,self__.__meta,self__.__extmap,null));
+var pred__29832 = cljs.core.keyword_identical_QMARK_;
+var expr__29833 = k__4388__auto__;
+if(cljs.core.truth_((pred__29832.cljs$core$IFn$_invoke$arity$2 ? pred__29832.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"index","index",-1531685915),expr__29833) : pred__29832.call(null,new cljs.core.Keyword(null,"index","index",-1531685915),expr__29833)))){
+return (new sevenguis.circle_drawer.Change_Diameter_Command(G__29822,self__.new_diameter,self__._BANG_memento,self__.__meta,self__.__extmap,null));
 } else {
-if(cljs.core.truth_((pred__75180.cljs$core$IFn$_invoke$arity$2 ? pred__75180.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"new-diameter","new-diameter",1899444485),expr__75181) : pred__75180.call(null,new cljs.core.Keyword(null,"new-diameter","new-diameter",1899444485),expr__75181)))){
-return (new sevenguis.circle_drawer.Change_Diameter_Command(self__.index,G__75163,self__._BANG_memento,self__.__meta,self__.__extmap,null));
+if(cljs.core.truth_((pred__29832.cljs$core$IFn$_invoke$arity$2 ? pred__29832.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"new-diameter","new-diameter",1899444485),expr__29833) : pred__29832.call(null,new cljs.core.Keyword(null,"new-diameter","new-diameter",1899444485),expr__29833)))){
+return (new sevenguis.circle_drawer.Change_Diameter_Command(self__.index,G__29822,self__._BANG_memento,self__.__meta,self__.__extmap,null));
 } else {
-if(cljs.core.truth_((pred__75180.cljs$core$IFn$_invoke$arity$2 ? pred__75180.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"!memento","!memento",1194699893),expr__75181) : pred__75180.call(null,new cljs.core.Keyword(null,"!memento","!memento",1194699893),expr__75181)))){
-return (new sevenguis.circle_drawer.Change_Diameter_Command(self__.index,self__.new_diameter,G__75163,self__.__meta,self__.__extmap,null));
+if(cljs.core.truth_((pred__29832.cljs$core$IFn$_invoke$arity$2 ? pred__29832.cljs$core$IFn$_invoke$arity$2(new cljs.core.Keyword(null,"!memento","!memento",1194699893),expr__29833) : pred__29832.call(null,new cljs.core.Keyword(null,"!memento","!memento",1194699893),expr__29833)))){
+return (new sevenguis.circle_drawer.Change_Diameter_Command(self__.index,self__.new_diameter,G__29822,self__.__meta,self__.__extmap,null));
 } else {
-return (new sevenguis.circle_drawer.Change_Diameter_Command(self__.index,self__.new_diameter,self__._BANG_memento,self__.__meta,cljs.core.assoc.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k__4388__auto__,G__75163),null));
+return (new sevenguis.circle_drawer.Change_Diameter_Command(self__.index,self__.new_diameter,self__._BANG_memento,self__.__meta,cljs.core.assoc.cljs$core$IFn$_invoke$arity$3(self__.__extmap,k__4388__auto__,G__29822),null));
 }
 }
 }
@@ -826,10 +826,10 @@ var this__4392__auto____$1 = this;
 return cljs.core.seq(cljs.core.concat.cljs$core$IFn$_invoke$arity$2(new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [(new cljs.core.MapEntry(new cljs.core.Keyword(null,"index","index",-1531685915),self__.index,null)),(new cljs.core.MapEntry(new cljs.core.Keyword(null,"new-diameter","new-diameter",1899444485),self__.new_diameter,null)),(new cljs.core.MapEntry(new cljs.core.Keyword(null,"!memento","!memento",1194699893),self__._BANG_memento,null))], null),self__.__extmap));
 }));
 
-(sevenguis.circle_drawer.Change_Diameter_Command.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (this__4379__auto__,G__75163){
+(sevenguis.circle_drawer.Change_Diameter_Command.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (this__4379__auto__,G__29822){
 var self__ = this;
 var this__4379__auto____$1 = this;
-return (new sevenguis.circle_drawer.Change_Diameter_Command(self__.index,self__.new_diameter,self__._BANG_memento,G__75163,self__.__extmap,self__.__hash));
+return (new sevenguis.circle_drawer.Change_Diameter_Command(self__.index,self__.new_diameter,self__._BANG_memento,G__29822,self__.__extmap,self__.__hash));
 }));
 
 (sevenguis.circle_drawer.Change_Diameter_Command.prototype.cljs$core$ICollection$_conj$arity$2 = (function (this__4385__auto__,entry__4386__auto__){
@@ -866,15 +866,15 @@ return (new sevenguis.circle_drawer.Change_Diameter_Command(index,new_diameter,_
 /**
  * Factory function for sevenguis.circle-drawer/Change-Diameter-Command, taking a map of keywords to field values.
  */
-sevenguis.circle_drawer.map__GT_Change_Diameter_Command = (function sevenguis$circle_drawer$map__GT_Change_Diameter_Command(G__75167){
-var extmap__4419__auto__ = (function (){var G__75193 = cljs.core.dissoc.cljs$core$IFn$_invoke$arity$variadic(G__75167,new cljs.core.Keyword(null,"index","index",-1531685915),cljs.core.prim_seq.cljs$core$IFn$_invoke$arity$2([new cljs.core.Keyword(null,"new-diameter","new-diameter",1899444485),new cljs.core.Keyword(null,"!memento","!memento",1194699893)], 0));
-if(cljs.core.record_QMARK_(G__75167)){
-return cljs.core.into.cljs$core$IFn$_invoke$arity$2(cljs.core.PersistentArrayMap.EMPTY,G__75193);
+sevenguis.circle_drawer.map__GT_Change_Diameter_Command = (function sevenguis$circle_drawer$map__GT_Change_Diameter_Command(G__29826){
+var extmap__4419__auto__ = (function (){var G__29835 = cljs.core.dissoc.cljs$core$IFn$_invoke$arity$variadic(G__29826,new cljs.core.Keyword(null,"index","index",-1531685915),cljs.core.prim_seq.cljs$core$IFn$_invoke$arity$2([new cljs.core.Keyword(null,"new-diameter","new-diameter",1899444485),new cljs.core.Keyword(null,"!memento","!memento",1194699893)], 0));
+if(cljs.core.record_QMARK_(G__29826)){
+return cljs.core.into.cljs$core$IFn$_invoke$arity$2(cljs.core.PersistentArrayMap.EMPTY,G__29835);
 } else {
-return G__75193;
+return G__29835;
 }
 })();
-return (new sevenguis.circle_drawer.Change_Diameter_Command(new cljs.core.Keyword(null,"index","index",-1531685915).cljs$core$IFn$_invoke$arity$1(G__75167),new cljs.core.Keyword(null,"new-diameter","new-diameter",1899444485).cljs$core$IFn$_invoke$arity$1(G__75167),new cljs.core.Keyword(null,"!memento","!memento",1194699893).cljs$core$IFn$_invoke$arity$1(G__75167),null,cljs.core.not_empty(extmap__4419__auto__),null));
+return (new sevenguis.circle_drawer.Change_Diameter_Command(new cljs.core.Keyword(null,"index","index",-1531685915).cljs$core$IFn$_invoke$arity$1(G__29826),new cljs.core.Keyword(null,"new-diameter","new-diameter",1899444485).cljs$core$IFn$_invoke$arity$1(G__29826),new cljs.core.Keyword(null,"!memento","!memento",1194699893).cljs$core$IFn$_invoke$arity$1(G__29826),null,cljs.core.not_empty(extmap__4419__auto__),null));
 });
 
 sevenguis.circle_drawer.undo_last_BANG_ = (function sevenguis$circle_drawer$undo_last_BANG_(_BANG_history){
@@ -912,29 +912,29 @@ sevenguis.circle_drawer._BANG_cached_diameter = reagent.core.cursor(sevenguis.ci
 sevenguis.circle_drawer.find_index_of_selected_circle = (function sevenguis$circle_drawer$find_index_of_selected_circle(circles,mouse_position){
 if(cljs.core.truth_(mouse_position)){
 var circles_with_indices_and_square_distances = cljs.core.map_indexed.cljs$core$IFn$_invoke$arity$2((function (index,circle){
-var sqr_distance_2d = (function (p__75201,p__75202){
-var vec__75203 = p__75201;
-var x1 = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75203,(0),null);
-var y1 = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75203,(1),null);
-var vec__75206 = p__75202;
-var x2 = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75206,(0),null);
-var y2 = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75206,(1),null);
-var vec__75209 = cljs.core.mapv.cljs$core$IFn$_invoke$arity$3(cljs.core._,new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [x2,y2], null),new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [x1,y1], null));
-var d1 = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75209,(0),null);
-var d2 = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75209,(1),null);
+var sqr_distance_2d = (function (p__29837,p__29838){
+var vec__29839 = p__29837;
+var x1 = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29839,(0),null);
+var y1 = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29839,(1),null);
+var vec__29842 = p__29838;
+var x2 = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29842,(0),null);
+var y2 = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29842,(1),null);
+var vec__29845 = cljs.core.mapv.cljs$core$IFn$_invoke$arity$3(cljs.core._,new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [x2,y2], null),new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [x1,y1], null));
+var d1 = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29845,(0),null);
+var d2 = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29845,(1),null);
 return (Math.pow(d1,(2)) + Math.pow(d2,(2)));
 });
 return new cljs.core.PersistentArrayMap(null, 3, [new cljs.core.Keyword(null,"index","index",-1531685915),index,new cljs.core.Keyword(null,"sqr-radius","sqr-radius",-434176325),Math.pow((new cljs.core.Keyword(null,"diameter","diameter",1560913323).cljs$core$IFn$_invoke$arity$1(circle) / (2)),(2)),new cljs.core.Keyword(null,"sqr-dist-from-center-to-mouse","sqr-dist-from-center-to-mouse",-484880591),sqr_distance_2d(mouse_position,new cljs.core.Keyword(null,"center-position","center-position",-1139175181).cljs$core$IFn$_invoke$arity$1(circle))], null);
 }),circles);
-var circles_surrounding_mouse = cljs.core.filter.cljs$core$IFn$_invoke$arity$2((function (p1__75200_SHARP_){
-return (new cljs.core.Keyword(null,"sqr-dist-from-center-to-mouse","sqr-dist-from-center-to-mouse",-484880591).cljs$core$IFn$_invoke$arity$1(p1__75200_SHARP_) < new cljs.core.Keyword(null,"sqr-radius","sqr-radius",-434176325).cljs$core$IFn$_invoke$arity$1(p1__75200_SHARP_));
+var circles_surrounding_mouse = cljs.core.filter.cljs$core$IFn$_invoke$arity$2((function (p1__29836_SHARP_){
+return (new cljs.core.Keyword(null,"sqr-dist-from-center-to-mouse","sqr-dist-from-center-to-mouse",-484880591).cljs$core$IFn$_invoke$arity$1(p1__29836_SHARP_) < new cljs.core.Keyword(null,"sqr-radius","sqr-radius",-434176325).cljs$core$IFn$_invoke$arity$1(p1__29836_SHARP_));
 }),circles_with_indices_and_square_distances);
-var index_of_closest_surrounding = (function (){var G__75216 = circles_surrounding_mouse;
-var G__75216__$1 = (((G__75216 == null))?null:cljs.core.apply.cljs$core$IFn$_invoke$arity$3(cljs.core.min_key,new cljs.core.Keyword(null,"sqr-dist-from-center-to-mouse","sqr-dist-from-center-to-mouse",-484880591),G__75216));
-if((G__75216__$1 == null)){
+var index_of_closest_surrounding = (function (){var G__29848 = circles_surrounding_mouse;
+var G__29848__$1 = (((G__29848 == null))?null:cljs.core.apply.cljs$core$IFn$_invoke$arity$3(cljs.core.min_key,new cljs.core.Keyword(null,"sqr-dist-from-center-to-mouse","sqr-dist-from-center-to-mouse",-484880591),G__29848));
+if((G__29848__$1 == null)){
 return null;
 } else {
-return new cljs.core.Keyword(null,"index","index",-1531685915).cljs$core$IFn$_invoke$arity$1(G__75216__$1);
+return new cljs.core.Keyword(null,"index","index",-1531685915).cljs$core$IFn$_invoke$arity$1(G__29848__$1);
 }
 })();
 return index_of_closest_surrounding;
@@ -956,8 +956,8 @@ return cljs.core.deref(sevenguis.circle_drawer._BANG_cached_selected_index);
 }
 }));
 sevenguis.circle_drawer.get_set_selected_circle = (function sevenguis$circle_drawer$get_set_selected_circle(var_args){
-var G__75222 = arguments.length;
-switch (G__75222) {
+var G__29850 = arguments.length;
+switch (G__29850) {
 case 1:
 return sevenguis.circle_drawer.get_set_selected_circle.cljs$core$IFn$_invoke$arity$1((arguments[(0)]));
 
@@ -999,8 +999,8 @@ sevenguis.circle_drawer._BANG_modal_ref = cljs.core.atom.cljs$core$IFn$_invoke$a
 sevenguis.circle_drawer._BANG_svg_ref = cljs.core.atom.cljs$core$IFn$_invoke$arity$1(null);
 sevenguis.circle_drawer._BANG_gui_ref = cljs.core.atom.cljs$core$IFn$_invoke$arity$1(null);
 sevenguis.circle_drawer.render_circles = (function sevenguis$circle_drawer$render_circles(var_args){
-var G__75224 = arguments.length;
-switch (G__75224) {
+var G__29852 = arguments.length;
+switch (G__29852) {
 case 2:
 return sevenguis.circle_drawer.render_circles.cljs$core$IFn$_invoke$arity$2((arguments[(0)]),(arguments[(1)]));
 
@@ -1032,18 +1032,26 @@ sevenguis.circle_drawer._BANG_render_circles = reagent.core.track((function (){
 return sevenguis.circle_drawer.render_circles.cljs$core$IFn$_invoke$arity$3(cljs.core.deref(sevenguis.circle_drawer._BANG_circles),cljs.core.deref(sevenguis.circle_drawer._BANG_index_of_selected_circle),sevenguis.circle_drawer.circle_settings);
 }));
 sevenguis.circle_drawer.change_diameter_dialog = (function sevenguis$circle_drawer$change_diameter_dialog(){
-return new cljs.core.PersistentVector(null, 6, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"dialog","dialog",1415150135),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"ref","ref",1289896967),(function sevenguis$circle_drawer$change_diameter_dialog_$_set_modal_ref(ref){
-return cljs.core.reset_BANG_(sevenguis.circle_drawer._BANG_modal_ref,ref);
-})], null),new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"p","p",151049309),(function (){var vec__75236 = (cljs.core.truth_(cljs.core.deref(sevenguis.circle_drawer._BANG_selected_circle))?cljs.core.mapv.cljs$core$IFn$_invoke$arity$2(Math.round,new cljs.core.Keyword(null,"center-position","center-position",-1139175181).cljs$core$IFn$_invoke$arity$1(cljs.core.deref(sevenguis.circle_drawer._BANG_selected_circle))):null);
-var x = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75236,(0),null);
-var y = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__75236,(1),null);
+return new cljs.core.PersistentVector(null, 6, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"dialog#change-diameter-dialog","dialog#change-diameter-dialog",-1197919863),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"ref","ref",1289896967),(function sevenguis$circle_drawer$change_diameter_dialog_$_set_modal_ref(ref){
+cljs.core.reset_BANG_(sevenguis.circle_drawer._BANG_modal_ref,ref);
+
+var temp__5735__auto__ = cljs.core.deref(sevenguis.circle_drawer._BANG_modal_ref);
+if(cljs.core.truth_(temp__5735__auto__)){
+var modal = temp__5735__auto__;
+return dialogPolyfill.registerDialog(modal);
+} else {
+return null;
+}
+})], null),new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"p","p",151049309),(function (){var vec__29853 = (cljs.core.truth_(cljs.core.deref(sevenguis.circle_drawer._BANG_selected_circle))?cljs.core.mapv.cljs$core$IFn$_invoke$arity$2(Math.round,new cljs.core.Keyword(null,"center-position","center-position",-1139175181).cljs$core$IFn$_invoke$arity$1(cljs.core.deref(sevenguis.circle_drawer._BANG_selected_circle))):null);
+var x = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29853,(0),null);
+var y = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__29853,(1),null);
 return ["Adjust diameter of circle at (",cljs.core.str.cljs$core$IFn$_invoke$arity$1(x),",",cljs.core.str.cljs$core$IFn$_invoke$arity$1(y),")"].join('');
 })()], null),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"div","div",1057191632)], null),new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [sevenguis.util.range_with_bubble,new cljs.core.PersistentArrayMap(null, 6, [new cljs.core.Keyword(null,"!value","!value",1189919300),reagent.core.cursor(sevenguis.circle_drawer._BANG_selected_circle,new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"diameter","diameter",1560913323)], null)),new cljs.core.Keyword(null,"min","min",444991522),sevenguis.circle_drawer.min_diameter,new cljs.core.Keyword(null,"max","max",61366548),sevenguis.circle_drawer.max_diameter,new cljs.core.Keyword(null,"bubble-scale","bubble-scale",33327641),sevenguis.circle_drawer.bubble_scale,new cljs.core.Keyword(null,"bubble-shift","bubble-shift",-956348627),sevenguis.circle_drawer.bubble_shift,new cljs.core.Keyword(null,"step","step",1288888124),sevenguis.circle_drawer.diameter_step], null)], null),new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"div.gui-line.button-line","div.gui-line.button-line",-639077900),new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"button","button",1456579943),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"on-click","on-click",1632826543),(function sevenguis$circle_drawer$change_diameter_dialog_$_on_click_modal_done(_){
 if(cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(cljs.core.deref(sevenguis.circle_drawer._BANG_cached_diameter),new cljs.core.Keyword(null,"diameter","diameter",1560913323).cljs$core$IFn$_invoke$arity$1(cljs.core.deref(sevenguis.circle_drawer._BANG_selected_circle)))){
 } else {
-var circles_before_diameter_change_75333 = cljs.core.assoc_in(cljs.core.deref(sevenguis.circle_drawer._BANG_circles),new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.deref(sevenguis.circle_drawer._BANG_index_of_selected_circle),new cljs.core.Keyword(null,"diameter","diameter",1560913323)], null),cljs.core.deref(sevenguis.circle_drawer._BANG_cached_diameter));
-var change_diameter_command_75334 = sevenguis.circle_drawer.map__GT_Change_Diameter_Command(new cljs.core.PersistentArrayMap(null, 3, [new cljs.core.Keyword(null,"index","index",-1531685915),cljs.core.deref(sevenguis.circle_drawer._BANG_index_of_selected_circle),new cljs.core.Keyword(null,"new-diameter","new-diameter",1899444485),new cljs.core.Keyword(null,"diameter","diameter",1560913323).cljs$core$IFn$_invoke$arity$1(cljs.core.deref(sevenguis.circle_drawer._BANG_selected_circle)),new cljs.core.Keyword(null,"!memento","!memento",1194699893),cljs.core.atom.cljs$core$IFn$_invoke$arity$1(circles_before_diameter_change_75333)], null));
-sevenguis.circle_drawer.add_to_history_BANG_(sevenguis.circle_drawer._BANG_circle_history,change_diameter_command_75334);
+var circles_before_diameter_change_29868 = cljs.core.assoc_in(cljs.core.deref(sevenguis.circle_drawer._BANG_circles),new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.deref(sevenguis.circle_drawer._BANG_index_of_selected_circle),new cljs.core.Keyword(null,"diameter","diameter",1560913323)], null),cljs.core.deref(sevenguis.circle_drawer._BANG_cached_diameter));
+var change_diameter_command_29869 = sevenguis.circle_drawer.map__GT_Change_Diameter_Command(new cljs.core.PersistentArrayMap(null, 3, [new cljs.core.Keyword(null,"index","index",-1531685915),cljs.core.deref(sevenguis.circle_drawer._BANG_index_of_selected_circle),new cljs.core.Keyword(null,"new-diameter","new-diameter",1899444485),new cljs.core.Keyword(null,"diameter","diameter",1560913323).cljs$core$IFn$_invoke$arity$1(cljs.core.deref(sevenguis.circle_drawer._BANG_selected_circle)),new cljs.core.Keyword(null,"!memento","!memento",1194699893),cljs.core.atom.cljs$core$IFn$_invoke$arity$1(circles_before_diameter_change_29868)], null));
+sevenguis.circle_drawer.add_to_history_BANG_(sevenguis.circle_drawer._BANG_circle_history,change_diameter_command_29869);
 }
 
 var temp__5735__auto__ = cljs.core.deref(sevenguis.circle_drawer._BANG_modal_ref);
@@ -1106,8 +1114,8 @@ return sevenguis.circle_drawer.redo_last_BANG_(sevenguis.circle_drawer._BANG_cir
 })], null),"Redo"], null)], null);
 });
 sevenguis.circle_drawer.circle_drawer = (function sevenguis$circle_drawer$circle_drawer(){
-return new cljs.core.PersistentVector(null, 6, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"div#circle-drawer.gui","div#circle-drawer.gui",-1815774389),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"ref","ref",1289896967),(function (p1__75259_SHARP_){
-return cljs.core.reset_BANG_(sevenguis.circle_drawer._BANG_gui_ref,p1__75259_SHARP_);
+return new cljs.core.PersistentVector(null, 6, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"div#circle-drawer.gui","div#circle-drawer.gui",-1815774389),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"ref","ref",1289896967),(function (p1__29856_SHARP_){
+return cljs.core.reset_BANG_(sevenguis.circle_drawer._BANG_gui_ref,p1__29856_SHARP_);
 })], null),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [sevenguis.circle_drawer.circle_drawer_buttons], null),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [sevenguis.circle_drawer.circle_canvas], null),new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [sevenguis.util.context_menu,new cljs.core.PersistentArrayMap(null, 4, [new cljs.core.Keyword(null,"options-and-listeners","options-and-listeners",-1780414521),new cljs.core.PersistentArrayMap(null, 1, ["Adjust diameter...",(function sevenguis$circle_drawer$circle_drawer_$_context_menu_adjust_diameter_on_click(_){
 var temp__5735__auto__ = cljs.core.deref(sevenguis.circle_drawer._BANG_modal_ref);
 if(cljs.core.truth_(temp__5735__auto__)){

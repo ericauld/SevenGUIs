@@ -55,6 +55,7 @@ body {
 
 #circle-drawer {
     width: 20em;
+    position: relative;
 }
 
 #circle-svg {
@@ -228,6 +229,10 @@ button:not(#book-button) {
 dialog {
     text-align: center;
     max-width: 14em;
+}
+
+#change-diameter-dialog {
+    top: 40em;
 }
 
 .dialog-close-wrapper {

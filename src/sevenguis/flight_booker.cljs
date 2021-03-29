@@ -129,7 +129,10 @@
 
 (defn modal [{:keys [!modal-element text button-text]}]
   (let [times-symbol \u00D7]
-    [:dialog {:ref #(reset! !modal-element %)}
+    [:dialog {:ref (fn modal-ref-set [ref]
+                     (reset! !modal-element ref)
+                     (when-let [modal @!modal-element]
+                       (js/dialogPolyfill.registerDialog modal)))}
      [:div.dialog-close-wrapper
       [:span.dialog-close {:on-click #(when-let [modal @!modal-element]
                                         (.close modal))}
