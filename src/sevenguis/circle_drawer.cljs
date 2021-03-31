@@ -234,6 +234,8 @@
 (defn circle-drawer []
   [:div#circle-drawer.gui {:ref #(reset! !gui-ref %)}
    [circle-drawer-buttons]
+   [:div.instructions [:span "Click to add a circle"]]
+   [:div.instructions [:span "Right click to change a circle's diameter"]]
    [circle-canvas]
    [util/context-menu {:options-and-listeners {"Adjust diameter..."
                                                (fn context-menu-adjust-diameter-on-click [_]
