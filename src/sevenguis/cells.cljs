@@ -192,6 +192,10 @@
 
 (defn cells []
   [:div.gui.cells
+   [:div.instructions [:span "Double-click to edit a cell (per assignment instructions)"]]
+   [:div.instructions [:span "Formulas begin with an = sign"]]
+   [:div.instructions [:span "Example operations: sum, prod, sub, div"]]
+   [:div.instructions [:span "Commas between function arguments, no space"]]
    [:div.table-wrapper
     [:table
      [:thead
