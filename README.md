@@ -4,7 +4,7 @@
 
 [View my video demo of the GUIs](https://www.youtube.com/watch?v=T_hNWevacT4)
 
-This was a fun group of front-end *katas* which I implemented in ClojureScript using the Reagent wrapper around React. It was suggested to me by [Roam Research](www.roamresearch.com). Read more about this and other projects at [ericauld.net/software](www.ericauld.net/software).
+This was a fun group of front-end *katas* which I implemented in ClojureScript using the Reagent wrapper around React. It was suggested to me by [Roam Research](www.roamresearch.com). Read more about this and other projects at [www.ericauld.net/software](www.ericauld.net/software).
 
 ## Installation
 
